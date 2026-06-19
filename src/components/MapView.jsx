@@ -98,7 +98,7 @@ export default function MapView({ lat, lng, height = 220, label = 'Delivery loca
           color: 'var(--runit-accent)', fontSize: 12, fontWeight: 600,
           backdropFilter: 'blur(8px)',
         }}
-      >
+      <a>
         📍 Open Maps
       </a>
     </div>
