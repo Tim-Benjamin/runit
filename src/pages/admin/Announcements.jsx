@@ -1,4 +1,5 @@
 // src/pages/admin/Announcements.jsx
+import API_BASE from '../../api/config';
 import { useState } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -124,7 +125,7 @@ export default function AdminAnnouncements() {
 
     try {
       var token = localStorage.getItem('runit_token');
-      var res   = await fetch('http://localhost/runit-backend/api/push/announce.php', {
+      var res   = await fetch('${API_BASE}/api/push/announce.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ title, message, audience, url }),

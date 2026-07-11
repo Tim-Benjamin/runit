@@ -1,4 +1,5 @@
 // src/components/ReportForm.jsx
+import API_BASE from '../api/config';
 import { useState } from 'react';
 
 const USER_REASONS = [
@@ -32,7 +33,7 @@ export default function ReportForm({ orderId, role = 'user' }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/feedback/report.php', {
+      const res   = await fetch('${API_BASE}/api/feedback/report.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ order_id: orderId, reason, details }),

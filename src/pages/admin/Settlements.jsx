@@ -1,4 +1,5 @@
 // src/pages/admin/Settlements.jsx
+import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -13,7 +14,7 @@ export default function AdminSettlements() {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/runners.php', {
+      const res   = await fetch('${API_BASE}/api/admin/runners.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -25,7 +26,7 @@ export default function AdminSettlements() {
   const markSettled = async (runnerId, amount) => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/settlements.php', {
+      const res   = await fetch('${API_BASE}/api/admin/settlements.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ runner_id: runnerId, amount }),

@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from "react";
+﻿import API_BASE from '../../api/config';
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import PillNavbar from "../../components/PillNavbar";
 import LocationSearch from "../../components/LocationSearch";
@@ -147,7 +148,7 @@ export default function PlaceOrder() {
         pickup_phone:    pickupPhone || null,
         cylinder_size:   cylinderSize || null,
       };
-      var res  = await fetch("http://localhost/runit-backend/api/orders/create.php", {
+      var res  = await fetch("${API_BASE}/api/orders/create.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify(body),

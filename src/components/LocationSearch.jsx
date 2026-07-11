@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+﻿import API_BASE from '../api/config';
+import { useState, useEffect, useRef, useCallback } from "react";
 import MapView from "./MapView";
 
 export default function LocationSearch({

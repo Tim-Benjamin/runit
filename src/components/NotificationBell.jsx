@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿import API_BASE from '../api/config';
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -65,7 +66,7 @@ export default function NotificationBell() {
       var since = getSince();
       var token = localStorage.getItem("runit_token");
       var res   = await fetch(
-        "http://localhost/runit-backend/api/notifications/list.php?since=" + encodeURIComponent(since),
+        "${API_BASE}/api/notifications/list.php?since=" + encodeURIComponent(since),
         { headers: { Authorization: "Bearer " + token } }
       );
       var data = await res.json();

@@ -1,4 +1,5 @@
 // src/pages/Login.jsx
+import API_BASE from '../api/config';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -18,7 +19,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const res  = await fetch('http://localhost/runit-backend/api/auth/login.php', {
+      const res  = await fetch('${API_BASE}/api/auth/login.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password }),

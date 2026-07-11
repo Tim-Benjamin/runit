@@ -1,4 +1,5 @@
 // src/pages/admin/Orders.jsx
+import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -16,7 +17,7 @@ export default function AdminOrders() {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/orders/list.php', {
+      const res   = await fetch('${API_BASE}/api/orders/list.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

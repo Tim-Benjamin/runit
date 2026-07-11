@@ -1,4 +1,5 @@
 ﻿// src/pages/admin/Dashboard.jsx
+import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -23,7 +24,7 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res = await fetch('http://localhost/runit-backend/api/admin/stats.php', {
+      const res = await fetch('${API_BASE}/api/admin/stats.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
   const updateRunner = async (id, status) => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res = await fetch('http://localhost/runit-backend/api/admin/runners.php', {
+      const res = await fetch('${API_BASE}/api/admin/runners.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ runner_id: id, status }),

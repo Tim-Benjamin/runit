@@ -1,4 +1,5 @@
 // src/components/RatingForm.jsx
+import API_BASE from '../api/config';
 import { useState, useEffect } from 'react';
 
 export default function RatingForm({ orderId }) {
@@ -21,7 +22,7 @@ export default function RatingForm({ orderId }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/feedback/rate.php', {
+      const res   = await fetch('${API_BASE}/api/feedback/rate.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ order_id: orderId, stars, comment }),

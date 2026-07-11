@@ -1,4 +1,5 @@
 // src/pages/admin/Fees.jsx
+import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -14,7 +15,7 @@ export default function AdminFees() {
   const fetchFees = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/fees.php', {
+      const res   = await fetch('${API_BASE}/api/admin/fees.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -31,7 +32,7 @@ export default function AdminFees() {
   const saveFee = async (category) => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/fees.php', {
+      const res   = await fetch('${API_BASE}/api/admin/fees.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ category, base_fee: parseFloat(editing[category]) }),

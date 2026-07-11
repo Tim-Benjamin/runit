@@ -1,4 +1,5 @@
 // src/hooks/usePushNotifications.js
+import API_BASE from '../api/config';
 import { useState, useEffect } from 'react';
 
 // Paste your VAPID public key here after running generate_vapid.php
@@ -41,7 +42,7 @@ export default function usePushNotifications() {
     if (!isSupported()) return;
 
     // Fetch VAPID public key from server
-    fetch('http://localhost/runit-backend/api/push/vapid_public.php')
+    fetch('${API_BASE}/api/push/vapid_public.php')
       .then(function(r) { return r.json(); })
       .then(function(d) {
         if (d.publicKey) {
@@ -102,7 +103,7 @@ export default function usePushNotifications() {
 
       // 4. Save subscription to server
       var token = localStorage.getItem('runit_token');
-      var res   = await fetch('http://localhost/runit-backend/api/push/subscribe.php', {
+      var res   = await fetch('${API_BASE}/api/push/subscribe.php', {
         method:  'POST',
         headers: {
           'Content-Type': 'application/json',
