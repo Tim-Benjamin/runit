@@ -1,27 +1,29 @@
-// src/pages/admin/Dashboard.jsx
+﻿// src/pages/admin/Dashboard.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
 import StatusBadge from '../../components/StatusBadge';
+import { SkeletonStatGrid, SkeletonCard } from '../../components/Skeleton';
+import PushPrompt from '../../components/PushPrompt';
 
 export default function AdminDashboard() {
   const { logout } = useAuth();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
 
-  const [stats, setStats]           = useState(null);
-  const [recentOrders, setRecent]   = useState([]);
+  const [stats, setStats] = useState(null);
+  const [recentOrders, setRecent] = useState([]);
   const [pendingRunners, setPending] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [actionMsg, setActionMsg]   = useState('');
+  const [loading, setLoading] = useState(true);
+  const [actionMsg, setActionMsg] = useState('');
 
   useEffect(() => { fetchAll(); }, []); // eslint-disable-line
 
   const fetchAll = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/stats.php', {
+      const res = await fetch('http://localhost/runit-backend/api/admin/stats.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -37,14 +39,14 @@ export default function AdminDashboard() {
   const updateRunner = async (id, status) => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/runners.php', {
+      const res = await fetch('http://localhost/runit-backend/api/admin/runners.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ runner_id: id, status }),
       });
       const data = await res.json();
       if (res.ok) {
-        setActionMsg(status === 'active' ? '✓ Runner approved!' : 'Runner rejected.');
+        setActionMsg(status === 'active' ? 'âœ“ Runner approved!' : 'Runner rejected.');
         fetchAll();
       } else {
         setActionMsg(data.error || 'Failed');
@@ -73,10 +75,7 @@ export default function AdminDashboard() {
       <PillNavbar
         title="Admin Panel"
         subtitle="RunIt platform overview"
-        actions={[
-          { icon: bellIcon, onClick: () => {} },
-          { icon: dotsIcon, onClick: logout },
-        ]}
+        actions={[]}
       />
 
       <div className="page-content">
@@ -88,8 +87,10 @@ export default function AdminDashboard() {
         )}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--runit-muted)' }}>
-            Loading dashboard...
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <SkeletonStatGrid count={4} />
+            <SkeletonStatGrid count={2} />
+            {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
           </div>
         ) : (
           <div>
@@ -103,10 +104,10 @@ export default function AdminDashboard() {
             {/* Main stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginBottom: 20 }}>
               {[
-                { icon: '📦', label: 'Total Orders',    value: stats?.total_orders ?? 0 },
-                { icon: '🏃', label: 'Active Runners',  value: stats?.active_runners ?? 0 },
-                { icon: '👥', label: 'Total Users',     value: stats?.total_users ?? 0 },
-                { icon: '💰', label: 'Revenue (20%)',   value: 'GH₵ ' + (stats?.revenue ?? 0).toFixed(2) },
+                { icon: '📦', label: 'Total Orders', value: stats?.total_orders ?? 0 },
+                { icon: '🏃', label: 'Active Runners', value: stats?.active_runners ?? 0 },
+                { icon: '👤', label: 'Total Users', value: stats?.total_users ?? 0 },
+                { icon: '💰', label: 'Revenue (20%)', value: 'GH₵ ' + (stats?.revenue ?? 0).toFixed(2) },
               ].map(s => (
                 <div key={s.label} style={{ background: 'var(--runit-surface)', border: '1px solid var(--runit-border)', borderRadius: 18, padding: '18px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ fontSize: 30, flexShrink: 0 }}>{s.icon}</div>
@@ -123,15 +124,15 @@ export default function AdminDashboard() {
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 14 }}>Orders by Status</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {[
-                  { key: 'pending',    label: 'Pending',    color: '#ffb400' },
-                  { key: 'accepted',   label: 'Accepted',   color: '#00c9a7' },
+                  { key: 'pending', label: 'Pending', color: '#ffb400' },
+                  { key: 'accepted', label: 'Accepted', color: '#00c9a7' },
                   { key: 'on_the_way', label: 'On The Way', color: '#7090ff' },
-                  { key: 'delivered',  label: 'Delivered',  color: '#00c9a7' },
-                  { key: 'cancelled',  label: 'Cancelled',  color: '#ff6060' },
+                  { key: 'delivered', label: 'Delivered', color: '#00c9a7' },
+                  { key: 'cancelled', label: 'Cancelled', color: '#ff6060' },
                 ].map(item => {
                   const count = stats?.by_status?.[item.key] ?? 0;
                   const total = stats?.total_orders || 1;
-                  const pct   = Math.round((count / total) * 100);
+                  const pct = Math.round((count / total) * 100);
                   return (
                     <div key={item.key}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
@@ -150,12 +151,14 @@ export default function AdminDashboard() {
             {/* Quick nav */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto', paddingBottom: 4 }}>
               {[
-                { label: '🏃 Runners',     path: '/admin/runners' },
-                { label: '📦 Orders',      path: '/admin/orders' },
-                { label: '🏪 Shops',       path: '/admin/shops' },
-                { label: '💰 Fees',        path: '/admin/fees' },
+                { label: '🏃 Runners', path: '/admin/runners' },
+                { label: '📦 Orders', path: '/admin/orders' },
+                { label: '🏪 Shops', path: '/admin/shops' },
+                { label: '💰 Fees', path: '/admin/fees' },
                 { label: '📊 Settlements', path: '/admin/settlements' },
-                { label: '%  Commission',  path: '/admin/commission' },
+                { label: '%  Commission', path: '/admin/commission' },
+                { label: '⭐ Feedback', path: '/admin/feedback' },
+                { label: '📣 Announce', path: '/admin/announcements' },
               ].map(item => (
                 <button key={item.path} onClick={() => navigate(item.path)} style={{ padding: '8px 16px', borderRadius: 50, whiteSpace: 'nowrap', background: 'var(--runit-surface)', border: '1px solid var(--runit-border)', color: 'var(--runit-text)', fontSize: 13, cursor: 'pointer', transition: 'border-color 0.2s', flexShrink: 0 }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--runit-accent)'}
@@ -174,7 +177,7 @@ export default function AdminDashboard() {
                       {pendingRunners.length}
                     </span>
                   </div>
-                  <button onClick={() => navigate('/admin/runners')} style={{ background: 'none', border: 'none', color: 'var(--runit-accent)', fontSize: 13, cursor: 'pointer' }}>See all →</button>
+                  <button onClick={() => navigate('/admin/runners')} style={{ background: 'none', border: 'none', color: 'var(--runit-accent)', fontSize: 13, cursor: 'pointer' }}>See all</button>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -211,7 +214,7 @@ export default function AdminDashboard() {
 
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => updateRunner(runner.id, 'active')} style={{ flex: 1, padding: '10px', borderRadius: 50, background: 'rgba(0,201,167,0.12)', border: '1px solid rgba(0,201,167,0.3)', color: '#00c9a7', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                          ✓ Approve
+                          âœ“ Approve
                         </button>
                         <button onClick={() => updateRunner(runner.id, 'suspended')} style={{ padding: '10px 18px', borderRadius: 50, background: 'rgba(255,80,80,0.08)', border: '1px solid rgba(255,80,80,0.25)', color: '#ff6060', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
                           Reject
@@ -227,7 +230,7 @@ export default function AdminDashboard() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <h2 style={{ fontSize: 15, fontWeight: 600 }}>Recent Orders</h2>
-                <button onClick={() => navigate('/admin/orders')} style={{ background: 'none', border: 'none', color: 'var(--runit-accent)', fontSize: 13, cursor: 'pointer' }}>See all →</button>
+                <button onClick={() => navigate('/admin/orders')} style={{ background: 'none', border: 'none', color: 'var(--runit-accent)', fontSize: 13, cursor: 'pointer' }}>See all</button>
               </div>
 
               {recentOrders.length === 0 ? (
@@ -241,7 +244,7 @@ export default function AdminDashboard() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                         <div style={{ flex: 1, marginRight: 10 }}>
                           <div style={{ fontSize: 11, color: 'var(--runit-muted)', marginBottom: 3 }}>
-                            #{order.id} · {order.category}
+                            #{order.id}· {order.category}
                           </div>
                           <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4 }}>
                             {order.description.length > 60 ? order.description.slice(0, 60) + '...' : order.description}
@@ -250,12 +253,12 @@ export default function AdminDashboard() {
                         <StatusBadge status={order.status} />
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--runit-muted)', borderTop: '1px solid var(--runit-border)', paddingTop: 8 }}>
-                        <span>👤 {order.user_name || 'Unknown'} · 🏃 {order.runner_name || 'Unassigned'}</span>
+                        <span>👤 {order.user_name || 'Unknown'}🏃 {order.runner_name || 'Unassigned'}</span>
                         <span style={{ color: 'var(--runit-accent)', fontWeight: 600 }}>
-                          GH₵ {parseFloat(order.final_fee || order.proposed_fee).toFixed(2)}
+                          GHâ‚µ {parseFloat(order.final_fee || order.proposed_fee).toFixed(2)}
                         </span>
                       </div>
-                    </div>
+                    </div> 
                   ))}
                 </div>
               )}
@@ -265,6 +268,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
+      <PushPrompt />
       <BottomPillNav />
     </div>
   );

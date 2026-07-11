@@ -122,7 +122,7 @@ export default function AdminCommission() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderTop: '1px solid var(--runit-border)', paddingTop: 8, marginTop: 4 }}>
                   <span style={{ color: 'var(--runit-muted)' }}>Platform earns</span>
                   <span style={{ fontWeight: 700, color: 'var(--runit-accent)' }}>GH₵ {(10 * platformCut / 100).toFixed(2)}</span>
-                </div>
+                </div> 
               </div>
             </div>
 

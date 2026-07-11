@@ -146,6 +146,28 @@ const adminTabs = [
       </svg>
     ),
   },
+  {
+  label: 'Feedback', path: '/admin/feedback',
+  icon: (active) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke={active ? 'var(--runit-accent)' : 'var(--runit-muted)'}
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  ),
+},
+{
+  label: 'Announce', path: '/admin/announcements',
+  icon: (active) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke={active ? 'var(--runit-accent)' : 'var(--runit-muted)'}
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 17H2a3 3 0 000 6h20v-6z" />
+      <path d="M18 11V5a2 2 0 00-2-2H2" />
+      <line x1="6" y1="11" x2="6" y2="17" />
+    </svg>
+  ),
+},
 ];
 
 export default function BottomPillNav() {

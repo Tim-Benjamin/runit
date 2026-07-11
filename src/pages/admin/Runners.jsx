@@ -1,4 +1,4 @@
-// src/pages/admin/Runners.jsx
+﻿// src/pages/admin/Runners.jsx
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -61,7 +61,7 @@ export default function AdminRunners() {
 
   return (
     <div style={{ background: 'var(--runit-bg)', minHeight: '100vh', color: 'var(--runit-text)', paddingBottom: 100 }}>
-      <PillNavbar title="Manage Runners" subtitle={runners.length + ' total'} actions={[{ icon: bellIcon, onClick: () => {} }]} />
+      <PillNavbar title="Manage Runners" subtitle={runners.length + ' total'} actions={[]} />
 
       <div className="page-content">
 
@@ -134,7 +134,7 @@ export default function AdminRunners() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   {runner.status === 'pending' && (
                     <button onClick={() => updateRunner(runner.id, 'active')} style={{ flex: 1, padding: '9px', borderRadius: 50, background: 'rgba(0,201,167,0.12)', border: '1px solid rgba(0,201,167,0.3)', color: '#00c9a7', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-                      ✓ Approve
+                      âœ“ Approve
                     </button>
                   )}
                   {runner.status === 'active' && (
@@ -159,7 +159,7 @@ export default function AdminRunners() {
 
           {!loading && filtered.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--runit-muted)' }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🏃</div>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>ðŸƒ</div>
               <div style={{ fontSize: 15, fontWeight: 600 }}>No runners here</div>
             </div>
           )}

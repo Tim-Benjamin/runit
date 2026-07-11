@@ -86,7 +86,7 @@ export default function ShopCard({ shop }) {
                 border: '1px solid var(--runit-border)',
                 color: 'var(--runit-muted)', fontSize: 12, fontWeight: 500,
               }}
-            >
+            <a>
               📞 Call
             </a>
           </div>
