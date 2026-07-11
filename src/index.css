@@ -33,6 +33,7 @@ html { scroll-behavior: smooth; }
 html, body, #root { height: 100%; }
 
 body {
+  background-color: #0a1f1c; /* fallback for flash */
   background-color: var(--runit-bg);
   color: var(--runit-text);
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
