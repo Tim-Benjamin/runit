@@ -1,3 +1,8 @@
 // src/api/config.js
-const API_BASE = 'https://runit.site.je';
+// In production on Vercel, use relative URL (proxied)
+// In local dev, use localhost directly
+const API_BASE = import.meta.env.DEV
+  ? 'http://localhost/runit-backend'
+  : '';
+
 export default API_BASE;
