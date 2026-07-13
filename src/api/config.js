@@ -3,6 +3,6 @@
 // In local dev, use localhost directly
 const API_BASE = import.meta.env.DEV
   ? 'http://localhost/runit-backend'
-  : '';
+  : 'https://runit.site.je/api/';
 
 export default API_BASE;
