@@ -1,5 +1,4 @@
 // src/pages/user/Shops.jsx
-import API_BASE from '../../api/config';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PillNavbar from '../../components/PillNavbar';

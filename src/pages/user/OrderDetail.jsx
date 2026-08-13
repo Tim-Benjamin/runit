@@ -1,4 +1,3 @@
-import API_BASE from '../../api/config';
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PillNavbar from "../../components/PillNavbar";
@@ -42,7 +41,7 @@ export default function OrderDetail() {
   var fetchOrder = useCallback(async function () {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("${API_BASE}/api/orders/get.php?id=" + id, {
+      var res = await fetch("http://localhost/runit-backend/api/orders/get.php?id=" + id, {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -99,7 +98,7 @@ export default function OrderDetail() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function (pos) {
       var token = localStorage.getItem("runit_token");
-      fetch("${API_BASE}/api/location/update.php", {
+      fetch("http://localhost/runit-backend/api/location/update.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: parseInt(id), lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -112,7 +111,7 @@ export default function OrderDetail() {
     setCancelling(true);
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("${API_BASE}/api/orders/cancel.php", {
+      var res = await fetch("http://localhost/runit-backend/api/orders/cancel.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: parseInt(id) }),
@@ -127,7 +126,7 @@ export default function OrderDetail() {
   var handleFeeResponse = async function (action) {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("${API_BASE}/api/orders/approve_fee.php", {
+      var res = await fetch("http://localhost/runit-backend/api/orders/approve_fee.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: parseInt(id), action: action }),

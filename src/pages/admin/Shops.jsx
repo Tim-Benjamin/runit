@@ -1,5 +1,4 @@
 // src/pages/admin/Shops.jsx
-import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -22,7 +21,7 @@ export default function AdminShops() {
   const fetchShops = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('${API_BASE}/api/shops/list.php', {
+      const res   = await fetch('http://localhost/runit-backend/api/shops/list.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -38,7 +37,7 @@ export default function AdminShops() {
     setSaving(true);
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('${API_BASE}/api/admin/shops.php', {
+      const res   = await fetch('http://localhost/runit-backend/api/admin/shops.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -61,7 +60,7 @@ export default function AdminShops() {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     try {
       const token = localStorage.getItem('runit_token');
-      await fetch('${API_BASE}/api/admin/shops.php', {
+      await fetch('http://localhost/runit-backend/api/admin/shops.php', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ id, status: newStatus }),
@@ -74,7 +73,7 @@ export default function AdminShops() {
     if (!window.confirm('Delete this shop?')) return;
     try {
       const token = localStorage.getItem('runit_token');
-      await fetch('${API_BASE}/api/admin/shops.php', {
+      await fetch('http://localhost/runit-backend/api/admin/shops.php', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ id }),

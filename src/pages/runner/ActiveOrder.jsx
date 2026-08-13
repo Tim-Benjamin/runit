@@ -1,5 +1,4 @@
-﻿import API_BASE from '../../api/config';
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PillNavbar from "../../components/PillNavbar";
 import BottomPillNav from "../../components/BottomPillNav";
@@ -33,7 +32,7 @@ function OrderCard(props) {
     try {
       var token = localStorage.getItem("runit_token");
       var res = await fetch(
-        "${API_BASE}/api/location/get.php?order_id=" + order.id,
+        "http://localhost/runit-backend/api/location/get.php?order_id=" + order.id,
         { headers: { Authorization: "Bearer " + token } }
       );
       var data = await res.json();
@@ -53,7 +52,7 @@ function OrderCard(props) {
     setUpdating(true);
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("${API_BASE}/api/orders/update_status.php", {
+      var res = await fetch("http://localhost/runit-backend/api/orders/update_status.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: order.id, status: newStatus }),
@@ -256,7 +255,7 @@ export default function ActiveOrder() {
   var fetchActiveOrders = useCallback(async function () {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("${API_BASE}/api/orders/list.php", {
+      var res = await fetch("http://localhost/runit-backend/api/orders/list.php", {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();

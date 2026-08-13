@@ -1,5 +1,4 @@
 // src/pages/runner/Earnings.jsx
-import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -19,10 +18,10 @@ export default function RunnerEarnings() {
       const token = localStorage.getItem('runit_token');
 
       const [eRes, rRes] = await Promise.all([
-        fetch('${API_BASE}/api/runner/earnings.php', {
+        fetch('http://localhost/runit-backend/api/runner/earnings.php', {
           headers: { Authorization: 'Bearer ' + token },
         }),
-        fetch('${API_BASE}/api/feedback/runner_ratings.php', {
+        fetch('http://localhost/runit-backend/api/feedback/runner_ratings.php', {
           headers: { Authorization: 'Bearer ' + token },
         }),
       ]);
