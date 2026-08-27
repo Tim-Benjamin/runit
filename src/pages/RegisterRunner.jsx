@@ -1,4 +1,5 @@
 // src/pages/RegisterRunner.jsx
+import API_BASE from '../api/config';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -32,7 +33,7 @@ export default function RegisterRunner() {
       formData.append('password', form.password);
       formData.append('id_document', idFile);
 
-      const res = await fetch('http://localhost/runit-backend/api/auth/register_runner.php', {
+      const res = await fetch('${API_BASE}/api/auth/register_runner.php', {
         method: 'POST',
         body: formData,
       });

@@ -1,4 +1,5 @@
 // src/pages/admin/Users.jsx
+import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -13,7 +14,7 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/users.php', {
+      const res   = await fetch('${API_BASE}/api/admin/users.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -26,7 +27,7 @@ export default function AdminUsers() {
     const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/users.php', {
+      const res   = await fetch('${API_BASE}/api/admin/users.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ user_id: id, status: newStatus }),

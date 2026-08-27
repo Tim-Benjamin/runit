@@ -1,3 +1,4 @@
+import API_BASE from '../../api/config';
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PillNavbar from "../../components/PillNavbar";
@@ -17,7 +18,7 @@ export default function Orders() {
   const fetchOrders = useCallback(async () => {
     try {
       const token = localStorage.getItem("runit_token");
-      const res = await fetch("http://localhost/runit-backend/api/orders/list.php", {
+      const res = await fetch("${API_BASE}/api/orders/list.php", {
         headers: { Authorization: "Bearer " + token },
       });
       const data = await res.json();

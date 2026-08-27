@@ -1,9 +1,3 @@
 // src/api/config.js
-// DEV: files are at http://localhost/runit-backend/api/...
-// PROD: Vercel proxies /api/... to https://runit.site.je/api/...
-
-const API_BASE = import.meta.env.DEV
-  ? 'http://localhost/runit-backend'
-  : '';
-
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://scribesglobal-org-285222.hostingersite.com/';
 export default API_BASE;

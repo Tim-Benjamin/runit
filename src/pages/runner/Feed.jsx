@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useCallback } from "react";
+﻿import API_BASE from '../../api/config';
+import { useState, useEffect, useCallback } from "react";
 import PillNavbar from "../../components/PillNavbar";
 import BottomPillNav from "../../components/BottomPillNav";
 import { SkeletonCard } from "../../components/Skeleton";
@@ -196,7 +197,7 @@ export default function RunnerFeed() {
   var fetchFeed = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("http://localhost/runit-backend/api/orders/list.php", {
+      var res = await fetch("${API_BASE}/api/orders/list.php", {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -221,7 +222,7 @@ export default function RunnerFeed() {
   var handleAccept = async function(order) {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("http://localhost/runit-backend/api/orders/accept.php", {
+      var res = await fetch("${API_BASE}/api/orders/accept.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: order.id }),
@@ -237,7 +238,7 @@ export default function RunnerFeed() {
     if (!fee || val < 1) { showMsg("Enter a valid counter fee", "error"); return; }
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch("http://localhost/runit-backend/api/orders/counter_fee.php", {
+      var res = await fetch("${API_BASE}/api/orders/counter_fee.php", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: order.id, counter_fee: val }),

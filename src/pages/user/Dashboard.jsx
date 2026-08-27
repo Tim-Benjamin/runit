@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useCallback } from "react";
+﻿import API_BASE from '../../api/config';
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import BottomPillNav from "../../components/BottomPillNav";
@@ -16,7 +17,7 @@ export default function UserDashboard() {
   var fetchOrders = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch("http://localhost/runit-backend/api/orders/list.php", {
+      var res   = await fetch("${API_BASE}/api/orders/list.php", {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();

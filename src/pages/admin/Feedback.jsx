@@ -1,4 +1,5 @@
 // src/pages/admin/Feedback.jsx
+import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import PillNavbar from '../../components/PillNavbar';
 import BottomPillNav from '../../components/BottomPillNav';
@@ -25,7 +26,7 @@ export default function AdminFeedback() {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/feedback.php', {
+      const res   = await fetch('${API_BASE}/api/admin/feedback.php', {
         headers: { Authorization: 'Bearer ' + token },
       });
       const json = await res.json();
@@ -37,7 +38,7 @@ export default function AdminFeedback() {
   const resolveReport = async (id) => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('http://localhost/runit-backend/api/admin/feedback.php', {
+      const res   = await fetch('${API_BASE}/api/admin/feedback.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ report_id: id }),

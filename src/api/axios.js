@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost/runit-backend',  // change this to your PHP server URL
+  baseURL: '${API_BASE}',  // change this to your PHP server URL
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
