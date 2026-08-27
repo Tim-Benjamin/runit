@@ -1,6 +1,5 @@
 // src/hooks/usePushNotifications.js
 import API_BASE from '../api/config';
-import { API_BASE } from '../../api/config';
 import { useState, useEffect } from 'react';
 
 // Paste your VAPID public key here after running generate_vapid.php

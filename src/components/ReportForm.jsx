@@ -1,6 +1,5 @@
 // src/components/ReportForm.jsx
 import API_BASE from '../api/config';
-import { API_BASE } from '../../api/config';
 import { useState } from 'react';
 
 const USER_REASONS = [
