@@ -1,5 +1,6 @@
 // src/components/RatingForm.jsx
 import API_BASE from '../api/config';
+import { API_BASE } from '../../api/config';
 import { useState, useEffect } from 'react';
 
 export default function RatingForm({ orderId }) {

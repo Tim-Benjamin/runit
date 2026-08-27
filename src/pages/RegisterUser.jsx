@@ -1,5 +1,6 @@
 // src/pages/RegisterUser.jsx
 import API_BASE from '../api/config';
+import { API_BASE } from '../../api/config';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
