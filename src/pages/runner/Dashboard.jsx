@@ -1,5 +1,4 @@
-﻿import API_BASE from '../../api/config';
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import PillNavbar from "../../components/PillNavbar";
@@ -18,8 +17,8 @@ export default function RunnerDashboard() {
     try {
       var token = localStorage.getItem("runit_token");
       var [eRes, oRes] = await Promise.all([
-        fetch("${API_BASE}/api/runner/earnings.php", { headers: { Authorization: "Bearer " + token } }),
-        fetch("${API_BASE}/api/orders/list.php",    { headers: { Authorization: "Bearer " + token } }),
+        fetch((import.meta.env.VITE_API_BASE) + "/api/runner/earnings.php", { headers: { Authorization: "Bearer " + token } }),
+        fetch((import.meta.env.VITE_API_BASE) + "/api/orders/list.php",    { headers: { Authorization: "Bearer " + token } }),
       ]);
       var eData = await eRes.json();
       var oData = await oRes.json();

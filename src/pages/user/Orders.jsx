@@ -1,4 +1,3 @@
-import API_BASE from '../../api/config';
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PillNavbar from "../../components/PillNavbar";
@@ -6,6 +5,7 @@ import BottomPillNav from "../../components/BottomPillNav";
 import StatusBadge from "../../components/StatusBadge";
 import { SkeletonCard } from "../../components/Skeleton";
 import EmptyState from "../../components/EmptyState";
+import Stories from '../../components/Stories';
 
 const FILTERS = ["All", "Pending", "Active", "Delivered", "Cancelled"];
 
@@ -18,7 +18,7 @@ export default function Orders() {
   const fetchOrders = useCallback(async () => {
     try {
       const token = localStorage.getItem("runit_token");
-      const res = await fetch("${API_BASE}/api/orders/list.php", {
+      const res = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/list.php", {
         headers: { Authorization: "Bearer " + token },
       });
       const data = await res.json();
@@ -66,7 +66,7 @@ export default function Orders() {
       />
 
       <div className="page-content">
-
+        <Stories />
         <div style={{ display: "flex", gap: 8, marginBottom: 20, overflowX: "auto", paddingBottom: 4 }}>
           {FILTERS.map(function(f) {
             return (

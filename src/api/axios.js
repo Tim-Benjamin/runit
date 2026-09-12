@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '${API_BASE}',  // change this to your PHP server URL
+  baseURL: import.meta.env.VITE_API_BASE,  // change this to your PHP server URL
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

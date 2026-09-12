@@ -1,5 +1,4 @@
 ﻿// src/pages/admin/Dashboard.jsx
-import API_BASE from '../../api/config';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -24,7 +23,7 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res = await fetch('${API_BASE}/api/admin/stats.php', {
+      const res = await fetch('(import.meta.env.VITE_API_BASE) + "/api/admin/stats.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -40,7 +39,7 @@ export default function AdminDashboard() {
   const updateRunner = async (id, status) => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res = await fetch('${API_BASE}/api/admin/runners.php', {
+      const res = await fetch('(import.meta.env.VITE_API_BASE) + "/api/admin/runners.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ runner_id: id, status }),
@@ -160,6 +159,8 @@ export default function AdminDashboard() {
                 { label: '%  Commission', path: '/admin/commission' },
                 { label: '⭐ Feedback', path: '/admin/feedback' },
                 { label: '📣 Announce', path: '/admin/announcements' },
+                { label: '📸 Stories', path: '/admin/stories' },
+                { label: '📢 Launch Ad', path: '/admin/ads' },
               ].map(item => (
                 <button key={item.path} onClick={() => navigate(item.path)} style={{ padding: '8px 16px', borderRadius: 50, whiteSpace: 'nowrap', background: 'var(--runit-surface)', border: '1px solid var(--runit-border)', color: 'var(--runit-text)', fontSize: 13, cursor: 'pointer', transition: 'border-color 0.2s', flexShrink: 0 }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--runit-accent)'}
@@ -259,7 +260,7 @@ export default function AdminDashboard() {
                           GHâ‚µ {parseFloat(order.final_fee || order.proposed_fee).toFixed(2)}
                         </span>
                       </div>
-                    </div> 
+                    </div>
                   ))}
                 </div>
               )}

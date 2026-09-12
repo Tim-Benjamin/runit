@@ -1,5 +1,4 @@
 // src/pages/RegisterUser.jsx
-import API_BASE from '../api/config';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -20,7 +19,7 @@ export default function RegisterUser() {
     setLoading(true);
 
     try {
-      const res = await fetch('${API_BASE}/api/auth/register_user.php', {
+      const res = await fetch('(import.meta.env.VITE_API_BASE) + "/api/auth/register_user.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -33,6 +33,10 @@ import AdminFeedback from './pages/admin/Feedback';
 import InstallPrompt from './components/InstallPrompt';
 import AdminAnnouncements from './pages/admin/Announcements';
 import SoundListener from './components/SoundListener';
+import Stories from './components/Stories';
+import LaunchAd from './components/LaunchAd';
+import AdminStories from './pages/admin/Stories';
+import AdminAds from './pages/admin/Ads';  // we'll create this below
 
 function ProtectedRoute({ children, allowedRole }) {
   const { user, loading } = useAuth();
@@ -50,6 +54,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <div style={{ animation: 'fadeIn 0.2s ease' }}>
+
+        <LaunchAd />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -80,7 +86,10 @@ export default function App() {
           <Route path="/admin/settlements" element={<ProtectedRoute allowedRole="admin"><AdminSettlements /></ProtectedRoute>} />
           <Route path="/admin/feedback" element={<ProtectedRoute allowedRole="admin"><AdminFeedback /></ProtectedRoute>} />
           <Route path="/admin/announcements" element={<ProtectedRoute allowedRole="admin"><AdminAnnouncements /></ProtectedRoute>} />
+          <Route path="/admin/stories" element={<ProtectedRoute allowedRole="admin"><AdminStories /></ProtectedRoute>} />
+          <Route path="/admin/ads"     element={<ProtectedRoute allowedRole="admin"><AdminAds /></ProtectedRoute>} />
         </Routes>
+        
         <SoundListener />
         <InstallPrompt />
       </div>

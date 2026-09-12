@@ -1,11 +1,11 @@
-﻿import API_BASE from '../../api/config';
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import BottomPillNav from "../../components/BottomPillNav";
 import PillNavbar from "../../components/PillNavbar";
 import StatusBadge from "../../components/StatusBadge";
 import PushPrompt from "../../components/PushPrompt";
+import Stories from '../../components/Stories';
 
 export default function UserDashboard() {
   var auth     = useAuth();
@@ -17,7 +17,7 @@ export default function UserDashboard() {
   var fetchOrders = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch("${API_BASE}/api/orders/list.php", {
+      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/list.php", {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -44,14 +44,13 @@ export default function UserDashboard() {
       />
 
       <div className="page-content">
-
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
             {"Hey " + (user && user.name ? user.name.split(" ")[0] : "") + " 👋"}
           </h1>
           <p style={{ color: "var(--runit-muted)", fontSize: 14 }}>What do you need today?</p>
         </div>
-
+        <Stories />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 28 }}>
           {[
             { label: "Total Orders", value: orders.length },
