@@ -1,34 +1,52 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import usePushNotifications from '../hooks/usePushNotifications';
+import { Capacitor } from '@capacitor/core';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const { subscribe } = usePushNotifications();
+  var [user, setUser]       = useState(null);
+  var [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // On app load, check if user is already logged in (token in localStorage)
-    const stored = localStorage.getItem('runit_user');
+  useEffect(function() {
+    var stored = localStorage.getItem('runit_user');
     if (stored) {
-      setUser(JSON.parse(stored));
+      try { setUser(JSON.parse(stored)); }
+      catch { localStorage.removeItem('runit_user'); }
     }
     setLoading(false);
   }, []);
 
-  const login = (userData, token) => {
+  var login = function(userData, token) {
     localStorage.setItem('runit_token', token);
     localStorage.setItem('runit_user', JSON.stringify(userData));
     setUser(userData);
-    // Auto-subscribe to push on login
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      setTimeout(subscribe, 2000); // slight delay so UI settles first
+
+    if (Capacitor.isNativePlatform()) {
+      // Native Android/iOS — use FCM via NativePush
+      setTimeout(function() {
+        import('../services/NativePush').then(function(mod) {
+          mod.registerNativePush(userData.role);
+        }).catch(function(e) {
+          console.error('[Auth] NativePush import failed:', e);
+        });
+      }, 1000);
+    } else {
+      // Web — use VAPID push
+      if ('serviceWorker' in navigator && 'PushManager' in window) {
+        setTimeout(function() {
+          import('../hooks/usePushNotifications').then(function(mod) {
+            // usePushNotifications is a hook so we can't call it here directly.
+            // Instead dispatch an event that PushPrompt.jsx listens for
+            // and calls subscribe() from inside the React tree.
+            window.dispatchEvent(new CustomEvent('runit-auto-subscribe'));
+          }).catch(function() {});
+        }, 2000);
+      }
     }
   };
 
-  const logout = () => {
+  var logout = function() {
     localStorage.removeItem('runit_token');
     localStorage.removeItem('runit_user');
     setUser(null);
@@ -41,7 +59,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Custom hook — use this in any component: const { user } = useAuth();
 export function useAuth() {
   return useContext(AuthContext);
 }

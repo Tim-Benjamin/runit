@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import usePushNotifications from "../hooks/usePushNotifications";
 
 function isBrave() {
@@ -6,18 +7,30 @@ function isBrave() {
 }
 
 export default function PushPrompt() {
-  var push = usePushNotifications();
+  var push      = usePushNotifications();
+  var isNative  = Capacitor.isNativePlatform();
+
   var [dismissed, setDismissed] = useState(
     localStorage.getItem("runit_push_dismissed") === "1"
   );
   var [done, setDone] = useState(false);
 
-  var dismiss = function() {
-    localStorage.setItem("runit_push_dismissed", "1");
-    setDismissed(true);
-  };
+  // Listen for the auto-subscribe event fired by AuthContext after login
+  useEffect(function() {
+    var handler = function() {
+      if (push.permission !== "granted" && !push.subscribed && !isNative) {
+        push.subscribe();
+      }
+    };
+    window.addEventListener("runit-auto-subscribe", handler);
+    return function() { window.removeEventListener("runit-auto-subscribe", handler); };
+  }, [push.permission, push.subscribed, push.subscribe, isNative]);
 
-  // Already subscribed or dismissed and done
+  // On native — the prompt is handled by the OS dialog triggered in AuthContext.
+  // PushPrompt is a web-only UI — don't render it inside the Android/iOS app.
+  if (isNative) return null;
+
+  // Already subscribed or user clicked Enable successfully
   if ((push.subscribed || done) && !push.error) return null;
 
   // Permission denied or not supported — show guide
@@ -45,7 +58,10 @@ export default function PushPrompt() {
             </div>
           )}
         </div>
-        <button onClick={dismiss} style={{ background: "none", border: "none", color: "var(--runit-muted)", cursor: "pointer", fontSize: 20, flexShrink: 0, lineHeight: 1 }}>x</button>
+        <button onClick={function() { setDismissed(true); localStorage.setItem("runit_push_dismissed", "1"); }}
+          style={{ background: "none", border: "none", color: "var(--runit-muted)", cursor: "pointer", fontSize: 20, flexShrink: 0, lineHeight: 1 }}>
+          ×
+        </button>
       </div>
     );
   }
@@ -55,7 +71,12 @@ export default function PushPrompt() {
 
   var handleEnable = async function() {
     var ok = await push.subscribe();
-    if (ok) setDone(true);
+    if (ok || push.subscribed) setDone(true);
+  };
+
+  var dismiss = function() {
+    localStorage.setItem("runit_push_dismissed", "1");
+    setDismissed(true);
   };
 
   return (
@@ -66,13 +87,17 @@ export default function PushPrompt() {
         <div style={{ fontSize: 12, color: "var(--runit-muted)", lineHeight: 1.5, marginBottom: push.error ? 6 : 12 }}>
           Get notified on order updates, runner assignments, and fee negotiations — even when the app is closed.
         </div>
+
         {push.error && (
           <div style={{ fontSize: 11, color: "#ff8080", marginBottom: 8, background: "rgba(255,80,80,0.08)", padding: "8px 10px", borderRadius: 8, lineHeight: 1.4 }}>
             {"⚠ " + push.error}
           </div>
         )}
+
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={handleEnable} disabled={push.loading}
+          <button
+            onClick={handleEnable}
+            disabled={push.loading}
             style={{ flex: 1, padding: "10px", borderRadius: 50, background: push.loading ? "var(--runit-accent-dark)" : "var(--runit-accent)", color: "#0a1f1c", fontWeight: 700, fontSize: 13, border: "none", cursor: push.loading ? "not-allowed" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
           >
             {push.loading ? (
@@ -82,7 +107,9 @@ export default function PushPrompt() {
               </span>
             ) : "🔔 Enable"}
           </button>
-          <button onClick={dismiss} disabled={push.loading}
+          <button
+            onClick={dismiss}
+            disabled={push.loading}
             style={{ padding: "10px 16px", borderRadius: 50, background: "transparent", border: "1px solid var(--runit-border)", color: "var(--runit-muted)", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
           >
             Not now
