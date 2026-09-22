@@ -25,7 +25,7 @@ export default function Home() {
   var [activeFilter, setActiveFilter] = useState("All");
 
   useEffect(function() {
-    fetch((import.meta.env.VITE_API_BASE) + "/api/shops/list.php")
+    fetch(import.meta.env.VITE_API_BASE + '/api/shops/list.php')
       .then(function(r) { return r.json(); })
       .then(function(d) { setShops(d.shops || []); })
       .catch(function() {})

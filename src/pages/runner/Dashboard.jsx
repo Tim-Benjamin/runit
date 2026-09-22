@@ -12,13 +12,15 @@ export default function RunnerDashboard() {
   var navigate = useNavigate();
   var [earnings, setEarnings] = useState(null);
   var [orders, setOrders]     = useState([]);
+  var [isOnline, setIsOnline] = useState(false);
+  var [toggling, setToggling] = useState(false);
 
   var fetchData = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
       var [eRes, oRes] = await Promise.all([
-        fetch((import.meta.env.VITE_API_BASE) + "/api/runner/earnings.php", { headers: { Authorization: "Bearer " + token } }),
-        fetch((import.meta.env.VITE_API_BASE) + "/api/orders/list.php",    { headers: { Authorization: "Bearer " + token } }),
+        fetch(import.meta.env.VITE_API_BASE + '/api/runner/earnings.php', { headers: { Authorization: 'Bearer ' + token } }),
+        fetch(import.meta.env.VITE_API_BASE + '/api/orders/list.php',    { headers: { Authorization: 'Bearer ' + token } }),
       ]);
       var eData = await eRes.json();
       var oData = await oRes.json();
@@ -33,6 +35,37 @@ export default function RunnerDashboard() {
     return function() { clearInterval(id); };
   }, [fetchData]);
 
+  // Load online status on mount
+  useEffect(function() {
+    var token = localStorage.getItem("runit_token");
+    fetch(import.meta.env.VITE_API_BASE + '/api/runner/profile.php', {
+      headers: { Authorization: "Bearer " + token },
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.runner) setIsOnline(!!parseInt(d.runner.is_online));
+      })
+      .catch(function() {});
+  }, []);
+
+  var toggleOnline = async function() {
+    setToggling(true);
+    try {
+      var token = localStorage.getItem("runit_token");
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/runner/toggle_online.php', {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify({ is_online: !isOnline }),
+      });
+      var data = await res.json();
+      if (res.ok) {
+        setIsOnline(data.is_online);
+        if (window.navigator.vibrate) window.navigator.vibrate(data.is_online ? [50, 30, 50] : [100]);
+      }
+    } catch {}
+    setToggling(false);
+  };
+
   var outstanding = Math.max(0,
     parseFloat((earnings && earnings.totals && earnings.totals.total_platform_cut) || 0) -
     parseFloat((earnings && earnings.totals && earnings.totals.total_settled)      || 0)
@@ -43,7 +76,7 @@ export default function RunnerDashboard() {
 
       <PillNavbar
         title="Runner Dashboard"
-        subtitle={(user && user.name ? user.name.split(" ")[0] : "") + " \u00B7 Online"}
+        subtitle={(user && user.name ? user.name.split(" ")[0] : "") + " \u00B7 " + (isOnline ? "Online" : "Offline")}
       />
 
       <div className="page-content">
@@ -53,12 +86,33 @@ export default function RunnerDashboard() {
             <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
               {"Hey " + (user && user.name ? user.name.split(" ")[0] : "") + " 🏃"}
             </h1>
-            <p style={{ color: "var(--runit-muted)", fontSize: 14 }}>{"You\u2019re online and ready"}</p>
+            <p style={{ color: "var(--runit-muted)", fontSize: 14 }}>
+              {isOnline ? "You\u2019re online and ready" : "You\u2019re currently offline"}
+            </p>
           </div>
-          <div style={{ background: "rgba(0,201,167,0.12)", border: "1px solid rgba(0,201,167,0.3)", borderRadius: 50, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--runit-accent)" }} />
-            <span style={{ fontSize: 12, color: "var(--runit-accent)", fontWeight: 600 }}>Online</span>
+          <div style={{ background: isOnline ? "rgba(0,201,167,0.12)" : "rgba(255,80,80,0.08)", border: "1px solid " + (isOnline ? "rgba(0,201,167,0.3)" : "rgba(255,80,80,0.25)"), borderRadius: 50, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: isOnline ? "var(--runit-accent)" : "#ff6060" }} />
+            <span style={{ fontSize: 12, color: isOnline ? "var(--runit-accent)" : "#ff6060", fontWeight: 600 }}>{isOnline ? "Online" : "Offline"}</span>
           </div>
+        </div>
+
+        {/* ── Online/Offline Toggle ── */}
+        <div style={{ background: isOnline ? "rgba(0,201,167,0.08)" : "rgba(255,80,80,0.06)", border: "1px solid " + (isOnline ? "rgba(0,201,167,0.25)" : "rgba(255,80,80,0.2)"), borderRadius: 20, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: isOnline ? "#00c9a7" : "#ff6060", boxShadow: isOnline ? "0 0 8px #00c9a7" : "none", flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: isOnline ? "var(--runit-accent)" : "#ff6060" }}>
+                {isOnline ? "You are Online" : "You are Offline"}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--runit-muted)", marginTop: 1 }}>
+                {isOnline ? "Orders are showing in your feed" : "You won't receive any orders"}
+              </div>
+            </div>
+          </div>
+          <button onClick={toggleOnline} disabled={toggling}
+            style={{ padding: "9px 18px", borderRadius: 50, fontWeight: 700, fontSize: 13, border: "none", cursor: toggling ? "not-allowed" : "pointer", fontFamily: "inherit", background: isOnline ? "rgba(255,80,80,0.12)" : "rgba(0,201,167,0.15)", color: isOnline ? "#ff6060" : "var(--runit-accent)", transition: "all 0.2s" }}>
+            {toggling ? "..." : isOnline ? "Go Offline" : "Go Online"}
+          </button>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 28 }}>

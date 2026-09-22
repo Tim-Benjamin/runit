@@ -1,148 +1,172 @@
-// src/hooks/usePushNotifications.js
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from "react";
+import { Capacitor } from "@capacitor/core";
 
-// Paste your VAPID public key here after running generate_vapid.php
-const VAPID_PUBLIC_KEY = localStorage.getItem('runit_vapid_public') || '';
+var BASE = import.meta.env.VITE_API_BASE;
 
 function urlBase64ToUint8Array(base64String) {
-  try {
-    var padding = '='.repeat((4 - base64String.length % 4) % 4);
-    var base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    var rawData = window.atob(base64);
-    var output  = new Uint8Array(rawData.length);
-    for (var i = 0; i < rawData.length; i++) {
-      output[i] = rawData.charCodeAt(i);
-    }
-    return output;
-  } catch (e) {
-    return null;
-  }
-}
-
-function isSupported() {
-  return (
-    'serviceWorker' in navigator &&
-    'PushManager'   in window    &&
-    'Notification'  in window
-  );
+  var padding = "=".repeat((4 - base64String.length % 4) % 4);
+  var base64  = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  var rawData = window.atob(base64);
+  var output  = new Uint8Array(rawData.length);
+  for (var i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i);
+  return output;
 }
 
 export default function usePushNotifications() {
-  var [permission, setPermission]   = useState(
-    typeof Notification !== 'undefined' ? Notification.permission : 'default'
-  );
+  var [permission, setPermission]   = useState("default");
   var [subscribed, setSubscribed]   = useState(false);
-  var [loading, setLoading]         = useState(false);
-  var [error, setError]             = useState('');
-  var [vapidKey, setVapidKey]       = useState(VAPID_PUBLIC_KEY);
+  var [error, setError]             = useState(null);
+  var subscribeAttempted            = useRef(false);
 
-  // On mount: fetch VAPID public key from server + check existing subscription
+  var isNative = Capacitor.isNativePlatform();
+
   useEffect(function() {
-    if (!isSupported()) return;
+    if (isNative) {
+      // On native — check if already registered
+      import("@capacitor/push-notifications").then(function(mod) {
+        var PushNotifications = mod.PushNotifications;
+        PushNotifications.checkPermissions().then(function(status) {
+          setPermission(status.receive);
+          if (status.receive === "granted") setSubscribed(true);
+        });
+      }).catch(function() {});
+    } else {
+      // On web
+      if (!("Notification" in window)) return;
+      setPermission(Notification.permission);
+      if (Notification.permission === "granted" && "serviceWorker" in navigator) {
+        navigator.serviceWorker.ready.then(function(reg) {
+          reg.pushManager.getSubscription().then(function(sub) {
+            if (sub) { setSubscribed(true); sendWebSubscriptionToServer(sub); }
+          });
+        });
+      }
+    }
+  }, [isNative]);
 
-    // Fetch VAPID public key from server
-    fetch('(import.meta.env.VITE_API_BASE) + "/api/push/vapid_public.php')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (d.publicKey) {
-          setVapidKey(d.publicKey);
-          localStorage.setItem('runit_vapid_public', d.publicKey);
-        }
-      })
-      .catch(function() {});
-
-    // Check if already subscribed
-    navigator.serviceWorker.ready.then(function(reg) {
-      reg.pushManager.getSubscription().then(function(sub) {
-        setSubscribed(!!sub);
+  var sendWebSubscriptionToServer = async function(subscription) {
+    try {
+      var token = localStorage.getItem("runit_token");
+      if (!token) return;
+      await fetch(BASE + "/api/push/subscribe.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify({ subscription: subscription }),
       });
-    }).catch(function() {});
-  }, []);
+    } catch(e) { console.error("[Push] Web subscribe error:", e); }
+  };
+
+  var sendFcmTokenToServer = async function(fcmToken) {
+    try {
+      var token = localStorage.getItem("runit_token");
+      if (!token) return;
+      var user = JSON.parse(localStorage.getItem("runit_user") || "{}");
+      await fetch(BASE + "/api/push/fcm_subscribe.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify({ fcm_token: fcmToken, role: user.role || "user" }),
+      });
+      console.log("[Push] FCM token sent to server");
+    } catch(e) { console.error("[Push] FCM subscribe error:", e); }
+  };
 
   var subscribe = async function() {
-    if (!isSupported()) {
-      setError('Push notifications are not supported in this browser.');
-      return false;
-    }
+    if (subscribeAttempted.current) return;
+    subscribeAttempted.current = true;
+    setError(null);
 
-    if (!vapidKey) {
-      setError('Push service not configured yet. Please try again shortly.');
-      return false;
-    }
+    if (isNative) {
+      // Native Capacitor push
+      try {
+        var { PushNotifications } = await import("@capacitor/push-notifications");
 
-    var key = urlBase64ToUint8Array(vapidKey);
-    if (!key) {
-      setError('Invalid push configuration. Check VAPID key.');
-      return false;
-    }
+        var permResult = await PushNotifications.requestPermissions();
+        setPermission(permResult.receive);
 
-    setLoading(true);
-    setError('');
+        if (permResult.receive !== "granted") {
+          setError("Notification permission denied. Please enable in phone Settings.");
+          subscribeAttempted.current = false;
+          return;
+        }
 
-    try {
-      // 1. Register service worker
-      var reg = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
+        await PushNotifications.register();
 
-      // 2. Request permission
-      var perm = await Notification.requestPermission();
-      setPermission(perm);
+        PushNotifications.addListener("registration", async function(token) {
+          console.log("[Push] FCM token:", token.value);
+          await sendFcmTokenToServer(token.value);
+          setSubscribed(true);
+        });
 
-      if (perm !== 'granted') {
-        setError('Notification permission was denied. Please allow notifications in your browser settings.');
-        setLoading(false);
-        return false;
+        PushNotifications.addListener("registrationError", function(err) {
+          console.error("[Push] Registration error:", err);
+          setError("Failed to register for notifications");
+          subscribeAttempted.current = false;
+        });
+
+        PushNotifications.addListener("pushNotificationReceived", function(notification) {
+          console.log("[Push] Received:", notification);
+          var data = notification.data || {};
+          if (data.type === "new_order") {
+            import("../services/NativePush").then(function(m) { m.playOrderAlert(); });
+          }
+        });
+
+        PushNotifications.addListener("pushNotificationActionPerformed", function(action) {
+          var url = (action.notification.data || {}).url || "/";
+          window.location.hash = url;
+        });
+
+      } catch(e) {
+        console.error("[Push] Native error:", e);
+        setError(e.message);
+      }
+      subscribeAttempted.current = false;
+
+    } else {
+      // Web push
+      if (!("Notification" in window)) {
+        setError("Push notifications are not supported in this browser");
+        subscribeAttempted.current = false;
+        return;
       }
 
-      // 3. Subscribe to push
-      var sub = await reg.pushManager.subscribe({
-        userVisibleOnly:      true,
-        applicationServerKey: key,
-      });
+      try {
+        var perm = await Notification.requestPermission();
+        setPermission(perm);
+        if (perm !== "granted") {
+          setError("Notification permission denied");
+          subscribeAttempted.current = false;
+          return;
+        }
 
-      // 4. Save subscription to server
-      var token = localStorage.getItem('runit_token');
-      var res   = await fetch('(import.meta.env.VITE_API_BASE) + "/api/push/subscribe.php', {
-        method:  'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization:  'Bearer ' + token,
-        },
-        body: JSON.stringify(sub.toJSON()),
-      });
+        var reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        await navigator.serviceWorker.ready;
 
-      if (res.ok) {
+        var keyRes  = await fetch(BASE + "/api/push/vapid_public.php");
+        var keyData = await keyRes.json();
+        if (!keyData.publicKey) throw new Error("No VAPID key");
+
+        var existing = await reg.pushManager.getSubscription();
+        if (existing) {
+          await sendWebSubscriptionToServer(existing);
+          setSubscribed(true);
+          subscribeAttempted.current = false;
+          return;
+        }
+
+        var subscription = await reg.pushManager.subscribe({
+          userVisibleOnly:      true,
+          applicationServerKey: urlBase64ToUint8Array(keyData.publicKey),
+        });
+        await sendWebSubscriptionToServer(subscription);
         setSubscribed(true);
-        setError('');
-        setLoading(false);
-        return true;
-      } else {
-        var data = await res.json();
-        setError(data.error || 'Failed to save subscription on server.');
-        setLoading(false);
-        return false;
+      } catch(e) {
+        console.error("[Push] Web error:", e);
+        setError(e.message);
       }
-    } catch (err) {
-      setError('Failed: ' + (err.message || 'Unknown error'));
-      setLoading(false);
-      return false;
+      subscribeAttempted.current = false;
     }
   };
 
-  var unsubscribe = async function() {
-    setLoading(true);
-    try {
-      var reg = await navigator.serviceWorker.ready;
-      var sub = await reg.pushManager.getSubscription();
-      if (sub) {
-        await sub.unsubscribe();
-        setSubscribed(false);
-      }
-    } catch (err) {
-      setError('Failed to unsubscribe: ' + err.message);
-    }
-    setLoading(false);
-  };
-
-  return { permission, subscribed, loading, subscribe, unsubscribe, error, isSupported: isSupported() };
+  return { permission, subscribed, subscribe, error, isNative };
 }

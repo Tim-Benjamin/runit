@@ -18,10 +18,10 @@ export default function RunnerEarnings() {
       const token = localStorage.getItem('runit_token');
 
       const [eRes, rRes] = await Promise.all([
-        fetch('(import.meta.env.VITE_API_BASE) + "/api/runner/earnings.php', {
+        fetch(import.meta.env.VITE_API_BASE + '/api/runner/earnings.php', {
           headers: { Authorization: 'Bearer ' + token },
         }),
-        fetch('(import.meta.env.VITE_API_BASE) + "/api/feedback/runner_ratings.php', {
+        fetch(import.meta.env.VITE_API_BASE + '/api/feedback/runner_ratings.php', {
           headers: { Authorization: 'Bearer ' + token },
         }),
       ]);

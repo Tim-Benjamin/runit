@@ -4,6 +4,7 @@ import BottomPillNav from "../../components/BottomPillNav";
 import { SkeletonCard } from "../../components/Skeleton";
 import EmptyState from "../../components/EmptyState";
 import MapView from "../../components/MapView";
+import useHaptic from '../../hooks/useHaptic';
 
 const CAT_COLORS = {
   "Food & Drinks": { bg: "rgba(255,150,50,0.1)",  color: "#ff9632", border: "rgba(255,150,50,0.25)" },
@@ -187,6 +188,8 @@ export default function RunnerFeed() {
   var [msg, setMsg]             = useState("");
   var [msgType, setMsgType]     = useState("success");
   var [prevCount, setPrevCount] = useState(0);
+  var [offline, setOffline]     = useState(false);
+  var haptic                    = useHaptic();
 
   var showMsg = function(text, type) {
     setMsg(text); setMsgType(type || "success");
@@ -196,17 +199,23 @@ export default function RunnerFeed() {
   var fetchFeed = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/list.php", {
+      var res = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/list.php', {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
       if (res.ok) {
-        var pending = (data.orders || []).filter(function(o) { return o.status === "pending" && !o.runner_id; });
-        setPrevCount(function(prev) {
-          if (pending.length > prev && prev > 0) showMsg("New order just arrived!", "success");
-          return pending.length;
-        });
-        setOrders(pending);
+        if (data.offline) {
+          setOffline(true);
+          setOrders([]);
+        } else {
+          setOffline(false);
+          var pending = (data.orders || []).filter(function(o) { return o.status === "pending" && !o.runner_id; });
+          setPrevCount(function(prev) {
+            if (pending.length > prev && prev > 0) showMsg("New order just arrived!", "success");
+            return pending.length;
+          });
+          setOrders(pending);
+        }
       }
     } catch {}
     setLoading(false);
@@ -219,9 +228,10 @@ export default function RunnerFeed() {
   }, [fetchFeed]);
 
   var handleAccept = async function(order) {
+    haptic.heavy(); // Strong vibration — important action
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/accept.php", {
+      var res = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/accept.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: order.id }),
@@ -237,7 +247,7 @@ export default function RunnerFeed() {
     if (!fee || val < 1) { showMsg("Enter a valid counter fee", "error"); return; }
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/counter_fee.php", {
+      var res = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/counter_fee.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: order.id, counter_fee: val }),
@@ -262,15 +272,17 @@ export default function RunnerFeed() {
 
       <div className="page-content">
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--runit-accent)", animation: "pulse 1.5s infinite" }} />
-          <span style={{ fontSize: 13, color: "var(--runit-muted)", flex: 1 }}>
-            {visibleOrders.length + " pending order" + (visibleOrders.length !== 1 ? "s" : "")}
-          </span>
-          <button onClick={fetchFeed} style={{ padding: "4px 12px", borderRadius: 50, background: "transparent", border: "1px solid var(--runit-border)", color: "var(--runit-muted)", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
-            Refresh
-          </button>
-        </div>
+        {!offline && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--runit-accent)", animation: "pulse 1.5s infinite" }} />
+            <span style={{ fontSize: 13, color: "var(--runit-muted)", flex: 1 }}>
+              {visibleOrders.length + " pending order" + (visibleOrders.length !== 1 ? "s" : "")}
+            </span>
+            <button onClick={fetchFeed} style={{ padding: "4px 12px", borderRadius: 50, background: "transparent", border: "1px solid var(--runit-border)", color: "var(--runit-muted)", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
+              Refresh
+            </button>
+          </div>
+        )}
 
         {msg !== "" && (
           <div style={{ background: msgType === "error" ? "rgba(255,80,80,0.1)" : "rgba(0,201,167,0.1)", border: "1px solid " + (msgType === "error" ? "rgba(255,80,80,0.3)" : "var(--runit-border-strong)"), borderRadius: 12, padding: "12px 16px", marginBottom: 16, color: msgType === "error" ? "#ff8080" : "var(--runit-accent)", fontSize: 13, fontWeight: 500 }}>
@@ -284,23 +296,35 @@ export default function RunnerFeed() {
           </div>
         )}
 
-        {!loading && visibleOrders.length === 0 && (
+        {offline && (
+          <div style={{ textAlign: "center", padding: "48px 20px", color: "var(--runit-muted)" }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>😴</div>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: "var(--runit-text)" }}>You are offline</div>
+            <div style={{ fontSize: 13, lineHeight: 1.6 }}>
+              Go online from your dashboard to start receiving orders
+            </div>
+          </div>
+        )}
+
+        {!loading && !offline && visibleOrders.length === 0 && (
           <EmptyState icon="🎉" title="All caught up!" subtitle="No pending orders right now. Check back soon." action={fetchFeed} actionLabel="Refresh Feed" />
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {visibleOrders.map(function(order) {
-            return (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onAccept={handleAccept}
-                onCounter={handleCounter}
-                accepted={accepted}
-              />
-            );
-          })}
-        </div>
+        {!offline && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {visibleOrders.map(function(order) {
+              return (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onAccept={handleAccept}
+                  onCounter={handleCounter}
+                  accepted={accepted}
+                />
+              );
+            })}
+          </div>
+        )}
 
       </div>
       <BottomPillNav />

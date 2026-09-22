@@ -5,7 +5,7 @@ import Spinner from "../../components/Spinner";
 
 const CATEGORIES  = ["Food","Groceries","Printing","Pharmacy","Other"];
 const CAT_EMOJI   = { Food: "🍔", Groceries: "🛒", Printing: "🖨️", Pharmacy: "💊", Other: "📦" };
-const IMG_BASE    = (import.meta.env.VITE_API_BASE) + "/uploads/shops/";
+const IMG_BASE    = import.meta.env.VITE_API_BASE + '/uploads/shops/';
 const emptyForm   = { name: "", category: "Food", location_description: "", phone: "" };
 
 export default function AdminShops() {
@@ -32,7 +32,7 @@ export default function AdminShops() {
   var fetchShops = async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/admin/shops.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/admin/shops.php', {
         headers: { Authorization: "Bearer " + token },
       });
       var data  = await res.json();
@@ -64,7 +64,7 @@ export default function AdminShops() {
       fd.append("phone",                form.phone);
       if (imageFile) fd.append("image", imageFile);
 
-      var res  = await fetch((import.meta.env.VITE_API_BASE) + "/api/admin/shops.php", {
+      var res  = await fetch(import.meta.env.VITE_API_BASE + '/api/admin/shops.php', {
         method: "POST",
         headers: { Authorization: "Bearer " + token },
         body: fd,
@@ -85,7 +85,7 @@ export default function AdminShops() {
     var newStatus = currentStatus === "active" ? "inactive" : "active";
     try {
       var token = localStorage.getItem("runit_token");
-      await fetch((import.meta.env.VITE_API_BASE) + "/api/admin/shops.php", {
+      await fetch(import.meta.env.VITE_API_BASE + '/api/admin/shops.php', {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ id, status: newStatus }),
@@ -98,7 +98,7 @@ export default function AdminShops() {
     if (!window.confirm("Delete this shop? This cannot be undone.")) return;
     try {
       var token = localStorage.getItem("runit_token");
-      await fetch((import.meta.env.VITE_API_BASE) + "/api/admin/shops.php", {
+      await fetch(import.meta.env.VITE_API_BASE + '/api/admin/shops.php', {
         method: "DELETE",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ id }),
@@ -112,7 +112,7 @@ export default function AdminShops() {
     if (isNaN(val) || val < 0) { showMsg("Enter a valid number", "error"); return; }
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/admin/shops.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/admin/shops.php', {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ id: boostModal.id, boost: val }),

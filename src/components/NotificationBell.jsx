@@ -65,7 +65,7 @@ export default function NotificationBell() {
       var since = getSince();
       var token = localStorage.getItem("runit_token");
       var res   = await fetch(
-        (import.meta.env.VITE_API_BASE) + "/api/notifications/list.php?since=" + encodeURIComponent(since),
+        import.meta.env.VITE_API_BASE + '/api/notifications/list.php?since=' + encodeURIComponent(since),
         { headers: { Authorization: "Bearer " + token } }
       );
       var data = await res.json();

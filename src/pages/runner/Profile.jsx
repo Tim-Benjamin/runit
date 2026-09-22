@@ -34,16 +34,6 @@ export default function RunnerProfile() {
       action: function() { navigate("/runner/active"); },
     },
     {
-      icon: push.subscribed ? "🔔" : "🔕",
-      label: push.subscribed ? "Notifications: On" : "Enable Notifications",
-      sub: push.subscribed
-        ? "Receiving new order alerts"
-        : "Get notified of new orders instantly — essential for runners!",
-      action: push.subscribed ? push.unsubscribe : push.subscribe,
-      highlight: !push.subscribed,
-      loading: push.loading,
-    },
-    {
       icon: "📞", label: "Support",
       sub: "runit@ucc.edu.gh",
       action: function() { window.open("mailto:runit@ucc.edu.gh"); },
@@ -83,11 +73,58 @@ export default function RunnerProfile() {
           </div>
         </div>
 
-        {push.error && (
-          <div style={{ background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.25)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ff8080", fontSize: 12 }}>
-            {"⚠ " + push.error}
+        {/* Push Notifications Toggle */}
+        <div style={{ background: "var(--runit-surface)", border: "1px solid var(--runit-border)", borderRadius: 16, padding: "16px 18px", marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(0,201,167,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                🔔
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>Push Notifications</div>
+                <div style={{ fontSize: 11, color: "var(--runit-muted)", marginTop: 2 }}>
+                  {push.loading ? "Please wait..." :
+                   push.subscribed ? "Enabled — receiving new order alerts" :
+                   push.permission === "denied" ? "Blocked in browser settings" :
+                   "Disabled — tap to enable"}
+                </div>
+              </div>
+            </div>
+            {push.permission === "denied" ? (
+              <span style={{ fontSize: 11, color: "#ff8080", fontWeight: 600 }}>Blocked</span>
+            ) : (
+              <button
+                onClick={push.subscribed ? push.unsubscribe : push.subscribe}
+                disabled={push.loading}
+                style={{
+                  width: 50, height: 28, borderRadius: 50, border: "none", cursor: push.loading ? "not-allowed" : "pointer",
+                  background: push.subscribed ? "var(--runit-accent)" : "var(--runit-elevated)",
+                  position: "relative", transition: "background 0.25s", flexShrink: 0,
+                }}
+              >
+                <div style={{
+                  position: "absolute", top: 4,
+                  left: push.subscribed ? 26 : 4,
+                  width: 20, height: 20, borderRadius: "50%",
+                  background: push.subscribed ? "#0a1f1c" : "var(--runit-muted)",
+                  transition: "left 0.25s",
+                }} />
+              </button>
+            )}
           </div>
-        )}
+
+          {push.error && (
+            <div style={{ marginTop: 10, fontSize: 12, color: "#ff8080", background: "rgba(255,80,80,0.08)", borderRadius: 8, padding: "8px 12px" }}>
+              {"⚠ " + push.error}
+            </div>
+          )}
+
+          {push.permission === "denied" && (
+            <div style={{ marginTop: 10, fontSize: 12, color: "var(--runit-muted)", lineHeight: 1.5 }}>
+              To enable: open your browser settings → Site settings → Notifications → find runitgh.com → Allow
+            </div>
+          )}
+        </div>
 
         {!push.subscribed && !push.loading && (
           <div style={{ background: "rgba(255,180,0,0.07)", border: "1px solid rgba(255,180,0,0.25)", borderRadius: 14, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>

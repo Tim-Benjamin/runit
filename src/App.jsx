@@ -1,6 +1,9 @@
 // src/App.jsx
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import Onboarding, { useOnboarding } from './components/Onboarding';
+import { AnimatePresence } from 'framer-motion';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -8,12 +11,16 @@ import Register from './pages/Register';
 import RegisterUser from './pages/RegisterUser';
 import RegisterRunner from './pages/RegisterRunner';
 
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+
 import UserDashboard from './pages/user/Dashboard';
 import PlaceOrder from './pages/user/PlaceOrder';
 import Orders from './pages/user/Orders';
 import OrderDetail from './pages/user/OrderDetail';
 import Shops from './pages/user/Shops';
 import UserProfile from './pages/user/Profile';
+import Receipt from './pages/user/Receipt';
 
 import RunnerDashboard from './pages/runner/Dashboard';
 import Feed from './pages/runner/Feed';
@@ -37,6 +44,9 @@ import Stories from './components/Stories';
 import LaunchAd from './components/LaunchAd';
 import AdminStories from './pages/admin/Stories';
 import AdminAds from './pages/admin/Ads';  // we'll create this below
+import AdminPromos from './pages/admin/Promos';
+import OfflinePage from './components/OfflinePage';
+
 
 function ProtectedRoute({ children, allowedRole }) {
   const { user, loading } = useAuth();
@@ -51,11 +61,29 @@ function ProtectedRoute({ children, allowedRole }) {
 }
 
 export default function App() {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const shouldOnboard = useOnboarding();
+
+  useEffect(() => {
+    // Only show onboarding for logged-in users who haven't seen it
+    const token = localStorage.getItem('runit_token');
+    if (token && shouldOnboard) setShowOnboarding(true);
+  }, [shouldOnboard]);
+
   return (
     <BrowserRouter>
       <div style={{ animation: 'fadeIn 0.2s ease' }}>
 
         <LaunchAd />
+
+        <AnimatePresence>
+          {showOnboarding && (
+            <Onboarding onDone={() => setShowOnboarding(false)} />
+          )}
+        </AnimatePresence>
+
+        <OfflinePage />
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -63,12 +91,16 @@ export default function App() {
           <Route path="/register/user" element={<RegisterUser />} />
           <Route path="/register/runner" element={<RegisterRunner />} />
 
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
           <Route path="/dashboard" element={<ProtectedRoute allowedRole="user"><UserDashboard /></ProtectedRoute>} />
           <Route path="/place-order" element={<ProtectedRoute allowedRole="user"><PlaceOrder /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute allowedRole="user"><Orders /></ProtectedRoute>} />
           <Route path="/orders/:id" element={<ProtectedRoute allowedRole="user"><OrderDetail /></ProtectedRoute>} />
           <Route path="/shops" element={<ProtectedRoute allowedRole="user"><Shops /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute allowedRole="user"><UserProfile /></ProtectedRoute>} />
+          <Route path="/orders/:id/receipt" element={<ProtectedRoute allowedRole="user"><Receipt /></ProtectedRoute>} />
 
           <Route path="/runner" element={<ProtectedRoute allowedRole="runner"><RunnerDashboard /></ProtectedRoute>} />
           <Route path="/runner/feed" element={<ProtectedRoute allowedRole="runner"><Feed /></ProtectedRoute>} />
@@ -87,9 +119,11 @@ export default function App() {
           <Route path="/admin/feedback" element={<ProtectedRoute allowedRole="admin"><AdminFeedback /></ProtectedRoute>} />
           <Route path="/admin/announcements" element={<ProtectedRoute allowedRole="admin"><AdminAnnouncements /></ProtectedRoute>} />
           <Route path="/admin/stories" element={<ProtectedRoute allowedRole="admin"><AdminStories /></ProtectedRoute>} />
-          <Route path="/admin/ads"     element={<ProtectedRoute allowedRole="admin"><AdminAds /></ProtectedRoute>} />
+          <Route path="/admin/ads" element={<ProtectedRoute allowedRole="admin"><AdminAds /></ProtectedRoute>} />
+          <Route path="/admin/promos" element={<ProtectedRoute allowedRole="admin"><AdminPromos /></ProtectedRoute>} />
+          
         </Routes>
-        
+
         <SoundListener />
         <InstallPrompt />
       </div>

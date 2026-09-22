@@ -28,7 +28,7 @@ export default function AdminRunners() {
   var fetchRunners = async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/admin/runners.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/admin/runners.php', {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -46,7 +46,7 @@ export default function AdminRunners() {
   var updateRunner = async function(id, status) {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/admin/runners.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/admin/runners.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ runner_id: id, status: status }),

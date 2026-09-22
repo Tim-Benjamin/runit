@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import PillNavbar from "../../components/PillNavbar";
 import LocationSearch from "../../components/LocationSearch";
 import SearchingForRunner from "../../components/SearchingForRunner";
-import useHaptic from '../../hooks/useHaptic';
 
 const CATEGORIES = [
   { label: "Food & Drinks", min: 5,  icon: "🍔", desc: "Order food or drinks delivered to you" },
@@ -23,7 +22,6 @@ const CYLINDER_SIZES = [
 export default function PlaceOrder() {
   var navigate       = useNavigate();
   var [searchParams] = useSearchParams();
-  var haptic          = useHaptic();
 
   var defaultCat = CATEGORIES.find(function(c) { return c.label === searchParams.get("category"); }) || CATEGORIES[0];
 
@@ -148,7 +146,6 @@ export default function PlaceOrder() {
 
   var handleSubmit = async function(e) {
     e.preventDefault();
-    haptic.medium();
     setError("");
 
     if (!myLoc) { setError("Your GPS location is required. Please allow location access."); return; }
@@ -184,68 +181,44 @@ export default function PlaceOrder() {
     var dest = finalDeliveryLoc || myLoc;
 
     setSubmitting(true);
-
-    var token = localStorage.getItem("runit_token");
-    var body = {
-      description:     finalDescription,
-      category:        category,
-      notes:           notes || null,
-      proposed_fee:    parsedFee,
-      delivery_lat:    dest.lat,
-      delivery_lng:    dest.lng,
-      pickup_lat:      pickupLoc ? pickupLoc.lat     : null,
-      pickup_lng:      pickupLoc ? pickupLoc.lng     : null,
-      pickup_address:  pickupLoc ? pickupLoc.address : null,
-      dropoff_address: useCustomDelivery && deliveryLoc ? deliveryLoc.address : null,
-      pickup_phone:    pickupPhone || null,
-      cylinder_size:   cylinderSize || null,
-      scheduled_for:   isScheduled && scheduledFor ? scheduledFor : null,
-      promo_code:      promoResult ? promoCode : null,
-    };
-
-    // ── Network call is isolated in its own try/catch so a network-level
-    // failure (offline, DNS, CORS) is distinguishable from a bad response
-    // body. Both are logged to the console with full detail — check
-    // DevTools → Console after reproducing the bug to see exactly which
-    // one is firing and why. ──
-    var res;
     try {
-      res = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/create.php', {
+      var token = localStorage.getItem("runit_token");
+      var body = {
+        description:     finalDescription,
+        category:        category,
+        notes:           notes || null,
+        proposed_fee:    parsedFee,
+        delivery_lat:    dest.lat,
+        delivery_lng:    dest.lng,
+        pickup_lat:      pickupLoc ? pickupLoc.lat     : null,
+        pickup_lng:      pickupLoc ? pickupLoc.lng     : null,
+        pickup_address:  pickupLoc ? pickupLoc.address : null,
+        dropoff_address: useCustomDelivery && deliveryLoc ? deliveryLoc.address : null,
+        pickup_phone:    pickupPhone || null,
+        cylinder_size:   cylinderSize || null,
+        scheduled_for:   isScheduled && scheduledFor ? scheduledFor : null,
+        promo_code:      promoResult ? promoCode : null,
+      };
+      var res  = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/create.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify(body),
       });
-    } catch (networkErr) {
-      console.error('Order submit — network/CORS failure:', networkErr);
+      var data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to place order.");
+        setSubmitting(false);
+      } else if (isScheduled) {
+        navigate("/orders");
+      } else {
+        // ── Show search animation immediately ──
+        setNewOrderId(data.order_id);
+        setSearching(true);
+        // Note: don't setSubmitting(false) here — we're transitioning to the search screen
+      }
+    } catch {
       setError("Cannot connect to server. Check your internet connection.");
       setSubmitting(false);
-      return;
-    }
-
-    // Read the raw response text first so a non-JSON body (e.g. a PHP
-    // warning printed before the JSON) can be logged and diagnosed,
-    // instead of just producing a generic parse-error message.
-    var rawText = await res.text();
-    var data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (parseErr) {
-      console.error('Order submit — server did not return valid JSON. Raw response:', rawText);
-      setError("The server returned an unexpected response. Check the browser console and server error log for details.");
-      setSubmitting(false);
-      return;
-    }
-
-    if (!res.ok) {
-      setError(data.error || "Failed to place order.");
-      setSubmitting(false);
-    } else if (isScheduled) {
-      navigate("/orders");
-    } else {
-      // ── Show search animation immediately ──
-      setNewOrderId(data.order_id);
-      setSearching(true);
-      // Note: don't setSubmitting(false) here — we're transitioning to the search screen
     }
   };
 

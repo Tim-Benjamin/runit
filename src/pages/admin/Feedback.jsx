@@ -21,7 +21,7 @@ export default function AdminFeedback() {
     setLoading(true);
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/feedback.php", {
+      var res   = await fetch(BASE + '/api/admin/feedback.php', {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -44,7 +44,7 @@ export default function AdminFeedback() {
     setResolving(reportId + "_" + action);
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/gas_reports.php", {
+      var res   = await fetch(BASE + '/api/admin/gas_reports.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ report_id: reportId, action: action }),
@@ -59,7 +59,7 @@ export default function AdminFeedback() {
   var resolveReport = async function(reportId) {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/feedback.php", {
+      var res   = await fetch(BASE + '/api/admin/feedback.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ report_id: reportId }),
@@ -130,7 +130,7 @@ export default function AdminFeedback() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {pendingGas.map(function(r) {
-                    var receiptUrl = BASE + "/uploads/receipts/" + String(r.fill_receipt || "");
+                    var receiptUrl = BASE + '/uploads/receipts/' + String(r.fill_receipt || '');
                     var isBusy     = resolving && resolving.startsWith(String(r.report_id));
                     return (
                       <div key={r.report_id} style={{ background: "var(--runit-surface)", border: "1px solid rgba(255,180,0,0.3)", borderRadius: 20, padding: 18 }}>

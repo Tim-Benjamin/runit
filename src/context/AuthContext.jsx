@@ -1,11 +1,13 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
+import usePushNotifications from '../hooks/usePushNotifications';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { subscribe } = usePushNotifications();
 
   useEffect(() => {
     // On app load, check if user is already logged in (token in localStorage)
@@ -20,6 +22,10 @@ export function AuthProvider({ children }) {
     localStorage.setItem('runit_token', token);
     localStorage.setItem('runit_user', JSON.stringify(userData));
     setUser(userData);
+    // Auto-subscribe to push on login
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      setTimeout(subscribe, 2000); // slight delay so UI settles first
+    }
   };
 
   const logout = () => {

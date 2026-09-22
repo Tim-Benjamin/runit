@@ -52,7 +52,7 @@ export default function GasFillConfirmation({ order, onDone }) {
 
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/confirm_fill.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/confirm_fill.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({
@@ -75,7 +75,7 @@ export default function GasFillConfirmation({ order, onDone }) {
     setSubmitting(false);
   };
 
-  var receiptUrl = (import.meta.env.VITE_API_BASE) + "/uploads/receipts/" + String(order.fill_receipt || "");
+  var receiptUrl = import.meta.env.VITE_API_BASE + '/uploads/receipts/' + String(order.fill_receipt || '');
   var fillAmt    = safeFloat(order.fill_amount).toFixed(2);
 
   var linkStyle = {

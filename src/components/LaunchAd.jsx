@@ -10,7 +10,7 @@ export default function LaunchAd() {
   useEffect(function() {
     var shown = sessionStorage.getItem(AD_KEY);
     if (shown) return;
-    fetch(BASE + "/api/ads/launch.php")
+    fetch(BASE + '/api/ads/launch.php')
       .then(function(r) { return r.json(); })
       .then(function(d) {
         if (d.ad) {

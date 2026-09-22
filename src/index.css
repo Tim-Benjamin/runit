@@ -1,5 +1,31 @@
 /* ── RunIt Global Styles ── */
 
+/* Remove WebView tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+  outline: none;
+}
+
+/* Remove blue focus ring on all interactive elements */
+button, a, input, textarea, select {
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+  -webkit-focus-ring-color: transparent !important;
+}
+
+/* Prevent text selection on tap */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection only in inputs */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 :root {
   --runit-bg:            #0a1f1c;
   --runit-surface:       #0f2e29;
@@ -249,4 +275,10 @@ img { display: block; max-width: 100%; }
   .pill-navbar-desktop { display: none !important; }
   .pill-navbar-mobile  { display: flex !important; }
   .mobile-topbar       { display: flex !important; }
+}
+
+@keyframes runnerPulse {
+  0%   { transform: scale(1);   opacity: 0.4; }
+  50%  { transform: scale(1.8); opacity: 0;   }
+  100% { transform: scale(1);   opacity: 0;   }
 }

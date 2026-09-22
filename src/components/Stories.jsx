@@ -235,7 +235,7 @@ export default function Stories() {
   var [showTutorial, setTutorial] = useState(false);
 
   useEffect(function() {
-    fetch(BASE + "/api/stories/list.php")
+    fetch(BASE + '/api/stories/list.php')
       .then(function(r) { return r.json(); })
       .then(function(d) { setGroups(d.groups || []); })
       .catch(function() {});

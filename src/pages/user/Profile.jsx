@@ -32,14 +32,13 @@ export default function UserProfile() {
       action: function() { navigate("/shops"); },
     },
     {
-      icon: push.subscribed ? "🔔" : "🔕",
-      label: push.subscribed ? "Notifications: On" : "Enable Notifications",
-      sub: push.subscribed
-        ? "Tap to turn off push notifications"
-        : "Get order updates even when app is closed",
-      action: push.subscribed ? push.unsubscribe : push.subscribe,
-      highlight: !push.subscribed,
-      loading: push.loading,
+      icon: "🎓",
+      label: "How RunIt works",
+      sub: "Replay the intro tutorial",
+      action: function() {
+        localStorage.removeItem("runit_onboarding_done");
+        window.location.reload();
+      },
     },
     {
       icon: "📞", label: "Support",
@@ -65,11 +64,94 @@ export default function UserProfile() {
           </span>
         </div>
 
-        {push.error && (
-          <div style={{ background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.25)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, color: "#ff8080", fontSize: 12 }}>
-            {"⚠ " + push.error}
+        {user && user.referral_credit > 0 && (
+          <div style={{ background: "rgba(0,201,167,0.07)", border: "1px solid rgba(0,201,167,0.2)", borderRadius: 14, padding: "12px 16px", display: "flex", gap: 10, alignItems: "center", marginBottom: 14 }}>
+            <span style={{ fontSize: 20 }}>🎁</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "var(--runit-accent)" }}>
+                {"GH₵ " + parseFloat(user.referral_credit).toFixed(2) + " referral credit"}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--runit-muted)", marginTop: 2 }}>
+                Automatically applied to your next order
+              </div>
+            </div>
           </div>
         )}
+
+        {user && (
+          <div style={{ background: "var(--runit-surface)", border: "1px solid var(--runit-border)", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
+            <div style={{ fontSize: 12, color: "var(--runit-muted)", marginBottom: 8, fontWeight: 600 }}>Your referral code</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ flex: 1, background: "var(--runit-elevated)", borderRadius: 10, padding: "10px 14px", fontWeight: 800, fontSize: 16, letterSpacing: 2, color: "var(--runit-accent)" }}>
+                {user.referral_code || "—"}
+              </div>
+              <button onClick={function() {
+                var text = "Use my RunIt referral code " + user.referral_code + " when signing up at https://runitgh.com and we both get GH₵2 credit!";
+                if (navigator.share) { navigator.share({ title: "Join RunIt", text: text }); }
+                else { navigator.clipboard.writeText(user.referral_code); alert("Code copied!"); }
+              }}
+                style={{ padding: "10px 16px", borderRadius: 12, background: "rgba(0,201,167,0.12)", border: "1px solid rgba(0,201,167,0.3)", color: "var(--runit-accent)", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                Share
+              </button>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--runit-muted)", marginTop: 8 }}>
+              Share your code — both of you get GH₵2 credit when they place their first order
+            </div>
+          </div>
+        )}
+
+        {/* Push Notifications Toggle */}
+        <div style={{ background: "var(--runit-surface)", border: "1px solid var(--runit-border)", borderRadius: 16, padding: "16px 18px", marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(0,201,167,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                🔔
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>Push Notifications</div>
+                <div style={{ fontSize: 11, color: "var(--runit-muted)", marginTop: 2 }}>
+                  {push.loading ? "Please wait..." :
+                   push.subscribed ? "Enabled — you'll get order alerts" :
+                   push.permission === "denied" ? "Blocked in browser settings" :
+                   "Disabled — tap to enable"}
+                </div>
+              </div>
+            </div>
+            {push.permission === "denied" ? (
+              <span style={{ fontSize: 11, color: "#ff8080", fontWeight: 600 }}>Blocked</span>
+            ) : (
+              <button
+                onClick={push.subscribed ? push.unsubscribe : push.subscribe}
+                disabled={push.loading}
+                style={{
+                  width: 50, height: 28, borderRadius: 50, border: "none", cursor: push.loading ? "not-allowed" : "pointer",
+                  background: push.subscribed ? "var(--runit-accent)" : "var(--runit-elevated)",
+                  position: "relative", transition: "background 0.25s", flexShrink: 0,
+                }}
+              >
+                <div style={{
+                  position: "absolute", top: 4,
+                  left: push.subscribed ? 26 : 4,
+                  width: 20, height: 20, borderRadius: "50%",
+                  background: push.subscribed ? "#0a1f1c" : "var(--runit-muted)",
+                  transition: "left 0.25s",
+                }} />
+              </button>
+            )}
+          </div>
+
+          {push.error && (
+            <div style={{ marginTop: 10, fontSize: 12, color: "#ff8080", background: "rgba(255,80,80,0.08)", borderRadius: 8, padding: "8px 12px" }}>
+              {"⚠ " + push.error}
+            </div>
+          )}
+
+          {push.permission === "denied" && (
+            <div style={{ marginTop: 10, fontSize: 12, color: "var(--runit-muted)", lineHeight: 1.5 }}>
+              To enable: open your browser settings → Site settings → Notifications → find runitgh.com → Allow
+            </div>
+          )}
+        </div>
 
         <div style={{ background: "var(--runit-surface)", border: "1px solid var(--runit-border)", borderRadius: 20, overflow: "hidden", marginBottom: 16 }}>
           {menuItems.map(function(item, i) {

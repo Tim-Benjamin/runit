@@ -30,7 +30,7 @@ export default function GasFillDeclaration({ order, onDeclared }) {
       fd.append("fill_amount", parseFloat(amount));
       fd.append("receipt",     file);
 
-      var res  = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/declare_fill.php", {
+      var res  = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/declare_fill.php', {
         method: "POST",
         headers: { Authorization: "Bearer " + token },
         body: fd,

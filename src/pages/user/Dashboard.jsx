@@ -6,6 +6,8 @@ import PillNavbar from "../../components/PillNavbar";
 import StatusBadge from "../../components/StatusBadge";
 import PushPrompt from "../../components/PushPrompt";
 import Stories from '../../components/Stories';
+import VersionBanner from '../../components/VersionBanner';
+import RunnerTracker from '../../components/RunnerTracker';
 
 export default function UserDashboard() {
   var auth     = useAuth();
@@ -17,7 +19,7 @@ export default function UserDashboard() {
   var fetchOrders = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/list.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/list.php', {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -42,7 +44,7 @@ export default function UserDashboard() {
         title="My Dashboard"
         subtitle={"Welcome back, " + (user && user.name ? user.name.split(" ")[0] : "")}
       />
-
+      
       <div className="page-content">
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
@@ -50,6 +52,7 @@ export default function UserDashboard() {
           </h1>
           <p style={{ color: "var(--runit-muted)", fontSize: 14 }}>What do you need today?</p>
         </div>
+        <VersionBanner />
         <Stories />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 28 }}>
           {[
@@ -83,19 +86,27 @@ export default function UserDashboard() {
               return (
                 <div key={order.id}
                   onClick={function() { navigate("/orders/" + order.id); }}
-                  style={{ background: "var(--runit-surface)", border: "1px solid var(--runit-border)", borderRadius: 16, padding: "14px 16px", cursor: "pointer", transition: "border-color 0.2s", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}
+                  style={{ background: "var(--runit-surface)", border: "1px solid var(--runit-border)", borderRadius: 16, padding: "14px 16px", cursor: "pointer", transition: "border-color 0.2s" }}
                   onMouseEnter={function(e) { e.currentTarget.style.borderColor = "var(--runit-border-strong)"; }}
                   onMouseLeave={function(e) { e.currentTarget.style.borderColor = "var(--runit-border)"; }}
                 >
-                  <div style={{ flex: 1, marginRight: 12 }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4, lineHeight: 1.3 }}>
-                      {order.description.length > 55 ? order.description.slice(0, 55) + "..." : order.description}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div style={{ flex: 1, marginRight: 12 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4, lineHeight: 1.3 }}>
+                        {order.description.length > 55 ? order.description.slice(0, 55) + "..." : order.description}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--runit-muted)" }}>
+                        {order.category + " \u00B7 GH\u20B5 " + parseFloat(order.final_fee || order.proposed_fee).toFixed(2)}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--runit-muted)" }}>
-                      {order.category + " \u00B7 GH\u20B5 " + parseFloat(order.final_fee || order.proposed_fee).toFixed(2)}
-                    </div>
+                    <StatusBadge status={order.status} />
                   </div>
-                  <StatusBadge status={order.status} />
+
+                  {["accepted","on_the_way","arrived"].includes(order.status) && (
+                    <div style={{ marginTop: 10 }} onClick={function(e) { e.stopPropagation(); }}>
+                      <RunnerTracker order={order} compact={true} />
+                    </div>
+                  )}
                 </div>
               );
             })}

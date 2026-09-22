@@ -22,7 +22,7 @@ export default function Shops() {
   var fetchShops = async function() {
     setLoading(true);
     try {
-      var res  = await fetch((import.meta.env.VITE_API_BASE) + "/api/shops/list.php");
+      var res  = await fetch(import.meta.env.VITE_API_BASE + '/api/shops/list.php');
       var data = await res.json();
       if (res.ok) setShops(data.shops || []);
     } catch {}

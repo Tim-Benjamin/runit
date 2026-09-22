@@ -28,7 +28,7 @@ export default function AdminAds() {
     setLoading(true);
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/ads.php", {
+      var res   = await fetch(BASE + '/api/admin/ads.php', {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -66,7 +66,7 @@ export default function AdminAds() {
       fd.append("text_content", textContent);
       if (file) fd.append("image", file);
 
-      var res  = await fetch(BASE + "/api/admin/ads.php", {
+      var res  = await fetch(BASE + '/api/admin/ads.php', {
         method: "POST",
         headers: { Authorization: "Bearer " + token },
         body: fd,
@@ -86,7 +86,7 @@ export default function AdminAds() {
     if (!window.confirm("Delete this ad?")) return;
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/ads.php", {
+      var res   = await fetch(BASE + '/api/admin/ads.php', {
         method: "DELETE",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ id: id }),

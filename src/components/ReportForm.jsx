@@ -32,7 +32,7 @@ export default function ReportForm({ orderId, role = 'user' }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('(import.meta.env.VITE_API_BASE) + "/api/feedback/report.php', {
+      const res   = await fetch(import.meta.env.VITE_API_BASE + '/api/feedback/report.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ order_id: orderId, reason, details }),

@@ -2,14 +2,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import useHaptic from '../hooks/useHaptic';
 
 export default function Login() {
-  const [form, setForm]       = useState({ email: '', password: '' });
-  const [error, setError]     = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const { login } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
+  const haptic = useHaptic();
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -18,21 +20,24 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const res  = await fetch('(import.meta.env.VITE_API_BASE) + "/api/auth/login.php', {
+      const res = await fetch(import.meta.env.VITE_API_BASE + '/api/auth/login.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password }),
       });
       const data = await res.json();
       if (!res.ok) {
+        haptic.error();
         setError(data.error || 'Login failed');
       } else {
+        haptic.success();
         login(data.user, data.token);
-        if (data.user.role === 'user')   navigate('/dashboard');
+        if (data.user.role === 'user') navigate('/dashboard');
         if (data.user.role === 'runner') navigate('/runner');
-        if (data.user.role === 'admin')  navigate('/admin');
+        if (data.user.role === 'admin') navigate('/admin');
       }
     } catch {
+      haptic.error();
       setError('Cannot connect to server. Make sure XAMPP is running.');
     }
     setLoading(false);
@@ -147,7 +152,11 @@ export default function Login() {
                 </button>
               </div>
             </div>
-
+            <div style={{ textAlign: "right", marginTop: -12, marginBottom: 20 }}>
+              <Link to="/forgot-password" style={{ fontSize: 12, color: "var(--runit-accent)", fontWeight: 600 }}>
+                Forgot password?
+              </Link>
+            </div>
             <button type="submit" disabled={loading} style={{
               width: '100%', padding: '14px', borderRadius: 50,
               background: loading ? 'var(--runit-accent-dark)' : 'var(--runit-accent)',

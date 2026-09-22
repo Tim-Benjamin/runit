@@ -6,9 +6,26 @@ export default function RegisterUser() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [referralValid, setReferralValid] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const checkReferral = async code => {
+    if (!code || code.length < 6) { setReferralValid(null); return; }
+    try {
+      const res = await fetch(import.meta.env.VITE_API_BASE + '/api/referral/validate.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.toUpperCase() }),
+      });
+      const data = await res.json();
+      setReferralValid(res.ok ? data : null);
+    } catch {
+      setReferralValid(null);
+    }
+  };
 
   // src/pages/RegisterUser.jsx — replace only handleSubmit
   const handleSubmit = async e => {
@@ -19,7 +36,7 @@ export default function RegisterUser() {
     setLoading(true);
 
     try {
-      const res = await fetch('(import.meta.env.VITE_API_BASE) + "/api/auth/register_user.php', {
+      const res = await fetch(import.meta.env.VITE_API_BASE + '/api/auth/register_user.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -27,6 +44,7 @@ export default function RegisterUser() {
           email: form.email,
           phone: form.phone,
           password: form.password,
+          referral_code: referralCode ? referralCode.toUpperCase() : null,
         }),
       });
 
@@ -142,6 +160,28 @@ export default function RegisterUser() {
                 value={form.confirm} onChange={handleChange} style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--runit-accent)'}
                 onBlur={e => e.target.style.borderColor = 'var(--runit-border)'} />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: 'var(--runit-muted)', display: 'block', marginBottom: 6, fontWeight: 500 }}>
+                Referral code (optional)
+              </label>
+              <input
+                type="text"
+                value={referralCode}
+                onChange={e => {
+                  const val = e.target.value.toUpperCase();
+                  setReferralCode(val);
+                  checkReferral(val);
+                }}
+                placeholder="Enter a friend's code"
+                style={{ width: '100%', padding: '11px 14px', borderRadius: 12, background: 'var(--runit-elevated)', color: 'var(--runit-text)', border: '1px solid ' + (referralValid ? 'var(--runit-accent)' : 'var(--runit-border)'), fontSize: 13, outline: 'none', fontFamily: 'inherit', letterSpacing: 1 }}
+              />
+              {referralValid && (
+                <div style={{ fontSize: 12, color: 'var(--runit-accent)', marginTop: 6 }}>
+                  {'✓ Valid code from ' + referralValid.name + ' — you both get GH₵2 credit when you place your first order!'}
+                </div>
+              )}
             </div>
 
             <button type="submit" disabled={loading} style={{

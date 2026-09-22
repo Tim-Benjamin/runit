@@ -32,7 +32,7 @@ export default function RegisterRunner() {
       formData.append('password', form.password);
       formData.append('id_document', idFile);
 
-      const res = await fetch('(import.meta.env.VITE_API_BASE) + "/api/auth/register_runner.php', {
+      const res = await fetch(import.meta.env.VITE_API_BASE + '/api/auth/register_runner.php', {
         method: 'POST',
         body: formData,
       });

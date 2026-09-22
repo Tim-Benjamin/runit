@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PillNavbar from "../../components/PillNavbar";
 import BottomPillNav from "../../components/BottomPillNav";
@@ -6,6 +6,7 @@ import StatusBadge from "../../components/StatusBadge";
 import MapView from "../../components/MapView";
 import Spinner from "../../components/Spinner";
 import GasFillDeclaration from "../../components/GasFillDeclaration";
+import useHaptic from '../../hooks/useHaptic';
 
 const STATUS_FLOW = [
   { key: "accepted",   next: "on_the_way", action: "Mark On The Way" },
@@ -24,6 +25,35 @@ function OrderCard({ order, onStatusUpdate, updating, updatingId, onRefresh }) {
   var [showPickupMap, setShowPickupMap]     = useState(false);
   var [userLocation, setUserLocation]   = useState(null);
 
+  // Send runner GPS every 5 seconds while order is active. Runs regardless
+  // of whether the card is expanded — unlike the customer-location fetch
+  // below, which is purely a display feature and can wait for the card to
+  // be opened, this is the actual data the customer's tracker depends on
+  // and must keep flowing in the background.
+  useEffect(function() {
+    if (!["accepted","on_the_way","arrived"].includes(order.status)) return;
+    if (!navigator.geolocation) return;
+
+    var sendRunnerLocation = function() {
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        var token = localStorage.getItem("runit_token");
+        fetch(import.meta.env.VITE_API_BASE + '/api/location/runner_update.php', {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+          body: JSON.stringify({
+            order_id: order.id,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          }),
+        }).catch(function() {});
+      });
+    };
+
+    sendRunnerLocation();
+    var interval = setInterval(sendRunnerLocation, 5000);
+    return function() { clearInterval(interval); };
+  }, [order.id, order.status]);
+
   var stepIndex   = STATUS_FLOW.findIndex(function(s) { return s.key === order.status; });
   var currentStep = STATUS_FLOW[stepIndex] || null;
   var isUpdating  = updating && updatingId === order.id;
@@ -33,7 +63,7 @@ function OrderCard({ order, onStatusUpdate, updating, updatingId, onRefresh }) {
     try {
       var token = localStorage.getItem("runit_token");
       var res   = await fetch(
-        (import.meta.env.VITE_API_BASE) + "/api/location/get.php?order_id=" + order.id,
+        import.meta.env.VITE_API_BASE + '/api/location/get.php?order_id=' + order.id,
         { headers: { Authorization: "Bearer " + token } }
       );
       var data = await res.json();
@@ -256,7 +286,7 @@ function OrderCard({ order, onStatusUpdate, updating, updatingId, onRefresh }) {
               <div style={{ fontSize: 12, color: "var(--runit-muted)", marginBottom: 8 }}>
                 {"Declared amount: GH\u20B5 " + parseFloat(order.fill_amount || 0).toFixed(2)}
               </div>
-              <a href={(import.meta.env.VITE_API_BASE) + "/uploads/receipts/" + order.fill_receipt} target="_blank" rel="noreferrer"
+              <a href={import.meta.env.VITE_API_BASE + '/uploads/receipts/' + order.fill_receipt} target="_blank" rel="noreferrer"
                 style={{ fontSize: 12, color: "var(--runit-accent)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", background: "var(--runit-elevated)", borderRadius: 10, textDecoration: "none" }}
               >
                 <span>🧾</span> View receipt photo
@@ -305,11 +335,12 @@ export default function ActiveOrder() {
   var [msg, setMsg]           = useState("");
   var [msgType, setMsgType]   = useState("success");
   var navigate                = useNavigate();
+  var haptic                  = useHaptic();
 
   var fetchActiveOrders = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/list.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/list.php', {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -330,11 +361,14 @@ export default function ActiveOrder() {
   }, [fetchActiveOrders]);
 
   var updateStatus = async function(orderId, newStatus) {
+    if (newStatus === "delivered") haptic.success();
+    else haptic.medium();
+
     setUpdating(true);
     setUpdatingId(orderId);
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/update_status.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/update_status.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: orderId, status: newStatus }),

@@ -7,54 +7,55 @@ import Spinner from "../../components/Spinner";
 import RatingForm from "../../components/RatingForm";
 import ReportForm from "../../components/ReportForm";
 import GasFillConfirmation from "../../components/GasFillConfirmation";
+import RunnerTracker from "../../components/RunnerTracker";
+
+// ── AutoCancelCountdown removed entirely ──
 
 const STATUS_STEPS = [
-  { key: "pending", label: "Order Placed", icon: "📝" },
-  { key: "accepted", label: "Runner Assigned", icon: "🏃" },
-  { key: "on_the_way", label: "On The Way", icon: "🛵" },
-  { key: "arrived", label: "Arrived", icon: "📍" },
-  { key: "delivered", label: "Delivered", icon: "✅" },
+  { key: "pending",    label: "Order Placed",   icon: "📝" },
+  { key: "accepted",   label: "Runner Assigned", icon: "🏃" },
+  { key: "on_the_way", label: "On The Way",      icon: "🛵" },
+  { key: "arrived",    label: "Arrived",         icon: "📍" },
+  { key: "delivered",  label: "Delivered",       icon: "✅" },
 ];
 
 const ACTIVE = ["pending", "accepted", "on_the_way", "arrived"];
+const TRACKING_STATUSES = ["accepted", "on_the_way", "arrived"];
 
-// Safely convert any value to a renderable string
 function safe(val) {
   if (val === null || val === undefined) return "";
   if (typeof val === "object") return JSON.stringify(val);
   return String(val);
 }
 
-// Safely parse a float — returns 0 on failure
 function safeFloat(val) {
   var n = parseFloat(val);
   return isNaN(n) ? 0 : n;
 }
 
-// Safely check boolean-like values PHP sends as "0"/"1"/0/1/true/false
 function isTruthy(val) {
   return val === true || val === 1 || val === "1";
 }
 
 export default function OrderDetail() {
-  var params = useParams();
-  var id = params.id;
+  var params   = useParams();
+  var id       = params.id;
   var navigate = useNavigate();
 
-  var [order, setOrder] = useState(null);
-  var [loading, setLoading] = useState(true);
-  var [cancelling, setCancelling] = useState(false);
-  var [error, setError] = useState("");
-  var [feeMsg, setFeeMsg] = useState("");
+  var [order, setOrder]             = useState(null);
+  var [loading, setLoading]         = useState(true);
+  var [cancelling, setCancelling]   = useState(false);
+  var [error, setError]             = useState("");
+  var [feeMsg, setFeeMsg]           = useState("");
   var [newFeeAlert, setNewFeeAlert] = useState(false);
-  var locationInterval = useRef(null);
-  var pollInterval = useRef(null);
-  var prevCounterFee = useRef(null);
+  var locationInterval              = useRef(null);
+  var pollInterval                  = useRef(null);
+  var prevCounterFee                = useRef(null);
 
-  var fetchOrder = useCallback(async function () {
+  var fetchOrder = useCallback(async function() {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/get.php?id=" + id, {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/get.php?id=' + id, {
         headers: { Authorization: "Bearer " + token },
       });
       var data = await res.json();
@@ -67,7 +68,7 @@ export default function OrderDetail() {
           prevCounterFee.current !== incoming.counter_fee
         ) {
           setNewFeeAlert(true);
-          setTimeout(function () { setNewFeeAlert(false); }, 6000);
+          setTimeout(function() { setNewFeeAlert(false); }, 6000);
         }
         prevCounterFee.current = incoming.counter_fee;
         setOrder(incoming);
@@ -75,20 +76,20 @@ export default function OrderDetail() {
         setError(safe(data.error) || "Order not found");
       }
     } catch {
-      setError("Connection error. Make sure XAMPP is running.");
+      setError("Connection error. Check your internet connection.");
     }
     setLoading(false);
   }, [id]);
 
-  useEffect(function () {
+  useEffect(function() {
     fetchOrder();
-    return function () {
+    return function() {
       if (locationInterval.current) clearInterval(locationInterval.current);
-      if (pollInterval.current) clearInterval(pollInterval.current);
+      if (pollInterval.current)     clearInterval(pollInterval.current);
     };
   }, [fetchOrder]);
 
-  useEffect(function () {
+  useEffect(function() {
     if (!order) return;
     if (ACTIVE.includes(order.status)) {
       if (!pollInterval.current) {
@@ -102,28 +103,28 @@ export default function OrderDetail() {
       }
     } else {
       if (locationInterval.current) { clearInterval(locationInterval.current); locationInterval.current = null; }
-      if (pollInterval.current) { clearInterval(pollInterval.current); pollInterval.current = null; }
+      if (pollInterval.current)     { clearInterval(pollInterval.current);     pollInterval.current = null; }
     }
   }, [order && order.status, fetchOrder]); // eslint-disable-line
 
-  var sendLocation = function () {
+  var sendLocation = function() {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(function (pos) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
       var token = localStorage.getItem("runit_token");
-      fetch((import.meta.env.VITE_API_BASE) + "/api/location/update.php", {
+      fetch(import.meta.env.VITE_API_BASE + '/api/location/update.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: parseInt(id), lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      }).catch(function () { });
+      }).catch(function() {});
     });
   };
 
-  var cancelOrder = async function () {
+  var cancelOrder = async function() {
     if (!window.confirm("Cancel this order?")) return;
     setCancelling(true);
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/cancel.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/cancel.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: parseInt(id) }),
@@ -135,10 +136,10 @@ export default function OrderDetail() {
     setCancelling(false);
   };
 
-  var handleFeeResponse = async function (action) {
+  var handleFeeResponse = async function(action) {
     try {
       var token = localStorage.getItem("runit_token");
-      var res = await fetch((import.meta.env.VITE_API_BASE) + "/api/orders/approve_fee.php", {
+      var res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/approve_fee.php', {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ order_id: parseInt(id), action: action }),
@@ -146,7 +147,7 @@ export default function OrderDetail() {
       var data = await res.json();
       if (res.ok) {
         setFeeMsg(action === "approve" ? "Fee accepted! Runner is on the way." : "Fee declined. Order is back in the feed.");
-        setTimeout(function () { setFeeMsg(""); }, 4000);
+        setTimeout(function() { setFeeMsg(""); }, 4000);
         prevCounterFee.current = null;
         fetchOrder();
       } else {
@@ -155,34 +156,27 @@ export default function OrderDetail() {
     } catch { setError("Connection error"); }
   };
 
-  // Build detail rows safely — every value must be a string
-  var buildDetailRows = function (o) {
+  var buildDetailRows = function(o) {
     var rows = [];
-
-    rows.push({ label: "Category", value: safe(o.category) });
+    rows.push({ label: "Category",     value: safe(o.category) });
     rows.push({ label: "Proposed Fee", value: "GH₵ " + safeFloat(o.proposed_fee).toFixed(2) });
-    rows.push({ label: "Final Fee", value: o.final_fee ? "GH₵ " + safeFloat(o.final_fee).toFixed(2) : "Pending" });
-
-    if (o.pickup_address) rows.push({ label: "Pickup location", value: safe(o.pickup_address) });
-    if (o.dropoff_address) rows.push({ label: "Drop-off notes", value: safe(o.dropoff_address) });
-    if (o.pickup_phone) rows.push({ label: "Pickup contact", value: safe(o.pickup_phone) });
-
+    rows.push({ label: "Final Fee",    value: o.final_fee ? "GH₵ " + safeFloat(o.final_fee).toFixed(2) : "Pending" });
+    if (o.pickup_address)  rows.push({ label: "Pickup location", value: safe(o.pickup_address) });
+    if (o.dropoff_address) rows.push({ label: "Drop-off notes",  value: safe(o.dropoff_address) });
+    if (o.pickup_phone)    rows.push({ label: "Pickup contact",  value: safe(o.pickup_phone) });
     if (o.cylinder_size) {
       var sz = safe(o.cylinder_size);
       rows.push({ label: "Cylinder size", value: sz.charAt(0).toUpperCase() + sz.slice(1) });
     }
-
     if (o.fill_amount) {
       rows.push({ label: "Fill amount", value: "GH₵ " + safeFloat(o.fill_amount).toFixed(2) });
     }
-
     rows.push({ label: "Status", value: safe(o.status).replace(/_/g, " ") });
-    rows.push({ label: "Placed", value: new Date(o.created_at).toLocaleString("en-GH") });
-
+    rows.push({ label: "Placed",  value: new Date(o.created_at).toLocaleString("en-GH") });
     return rows;
   };
 
-  var stepIndex = order ? STATUS_STEPS.findIndex(function (s) { return s.key === order.status; }) : -1;
+  var stepIndex   = order ? STATUS_STEPS.findIndex(function(s) { return s.key === order.status; }) : -1;
   var isGasRefill = order && order.category === "Gas Refill";
 
   if (loading) {
@@ -202,7 +196,7 @@ export default function OrderDetail() {
         <div className="page-content" style={{ maxWidth: 560, margin: "0 auto", textAlign: "center", paddingTop: 60 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
           <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>{error || "Order not found"}</div>
-          <button onClick={function () { navigate("/orders"); }}
+          <button onClick={function() { navigate("/orders"); }}
             style={{ marginTop: 16, padding: "11px 24px", borderRadius: 50, background: "var(--runit-accent)", color: "#0a1f1c", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
             Back to Orders
           </button>
@@ -212,10 +206,10 @@ export default function OrderDetail() {
     );
   }
 
-  var detailRows = buildDetailRows(order);
-  var fillConfirmed = isTruthy(order.fill_confirmed);
-  var fillDisputed = isTruthy(order.fill_disputed);
-  var fillResolved = isTruthy(order.fill_resolved);
+  var detailRows     = buildDetailRows(order);
+  var fillConfirmed  = isTruthy(order.fill_confirmed);
+  var fillDisputed   = isTruthy(order.fill_disputed);
+  var fillResolved   = isTruthy(order.fill_resolved);
   var fillResolution = safe(order.fill_resolution || "");
 
   return (
@@ -229,11 +223,11 @@ export default function OrderDetail() {
           {error !== "" && (
             <div style={{ background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.25)", borderRadius: 12, padding: "12px 16px", color: "#ff8080", fontSize: 13, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span>{"⚠ " + error}</span>
-              <button onClick={function () { setError(""); }} style={{ background: "none", border: "none", color: "#ff8080", cursor: "pointer", fontSize: 18, fontFamily: "inherit" }}>×</button>
+              <button onClick={function() { setError(""); }} style={{ background: "none", border: "none", color: "#ff8080", cursor: "pointer", fontSize: 18, fontFamily: "inherit" }}>×</button>
             </div>
           )}
 
-          {/* ── Fee approved toast ── */}
+          {/* ── Fee toast ── */}
           {feeMsg !== "" && (
             <div style={{ background: "rgba(0,201,167,0.1)", border: "1px solid var(--runit-border-strong)", borderRadius: 12, padding: "12px 16px", color: "var(--runit-accent)", fontSize: 13, fontWeight: 500 }}>
               {"✓ " + feeMsg}
@@ -264,11 +258,11 @@ export default function OrderDetail() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={function () { handleFeeResponse("approve"); }}
+                <button onClick={function() { handleFeeResponse("approve"); }}
                   style={{ flex: 1, padding: "11px", borderRadius: 50, background: "var(--runit-accent)", color: "#0a1f1c", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                   {"✓ Accept GH₵ " + safeFloat(order.counter_fee).toFixed(2)}
                 </button>
-                <button onClick={function () { handleFeeResponse("decline"); }}
+                <button onClick={function() { handleFeeResponse("decline"); }}
                   style={{ padding: "11px 18px", borderRadius: 50, background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.25)", color: "#ff8080", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
                   Decline
                 </button>
@@ -285,8 +279,8 @@ export default function OrderDetail() {
 
             {order.status !== "cancelled" ? (
               <div>
-                {STATUS_STEPS.map(function (step, i) {
-                  var isDone = i <= stepIndex;
+                {STATUS_STEPS.map(function(step, i) {
+                  var isDone   = i <= stepIndex;
                   var isActive = i === stepIndex;
                   return (
                     <div key={step.key} style={{ display: "flex", gap: 14 }}>
@@ -323,7 +317,9 @@ export default function OrderDetail() {
             )}
           </div>
 
-          {/* ── Gas fill confirmation (user verifies runner's declaration) ── */}
+          {/* ── AutoCancelCountdown removed — search animation handles this now ── */}
+
+          {/* ── Gas fill confirmation ── */}
           {isGasRefill && order.fill_receipt && !fillConfirmed && !fillDisputed && ACTIVE.includes(order.status) && (
             <GasFillConfirmation order={order} onDone={fetchOrder} />
           )}
@@ -343,26 +339,29 @@ export default function OrderDetail() {
 
           {/* ── Fill disputed banner ── */}
           {isGasRefill && fillDisputed && (
-            <div style={{               background: fillResolved
+            <div style={{
+              background: fillResolved
                 ? (fillResolution.toLowerCase().includes("fault") ? "rgba(0,201,167,0.07)" : "rgba(100,100,120,0.08)")
                 : "rgba(255,180,0,0.07)",
               border: "1px solid " + (fillResolved
                 ? (fillResolution.toLowerCase().includes("fault") ? "rgba(0,201,167,0.2)" : "var(--runit-border)")
-                : "rgba(255,180,0,0.25)"), borderRadius: 16, padding: "14px 16px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 20 }}>{fillResolved ? (fillResolution && fillResolution.toLowerCase().includes("fault") ? "✅" : "ℹ️") : "⚠️"}</span>
+                : "rgba(255,180,0,0.25)"),
+              borderRadius: 16, padding: "14px 16px", display: "flex", gap: 10, alignItems: "flex-start"
+            }}>
+              <span style={{ fontSize: 20 }}>
+                {fillResolved ? (fillResolution.toLowerCase().includes("fault") ? "✅" : "ℹ️") : "⚠️"}
+              </span>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 13, color: fillResolved ? "var(--runit-accent)" : "#ffb400" }}>
                   {fillResolved
-                    ? (fillResolution && fillResolution.toLowerCase().includes("favour")
-                      ? "Resolved in your favour"
-                      : "Dispute reviewed")
+                    ? (fillResolution.toLowerCase().includes("fault") ? "Resolved in your favour" : "Dispute reviewed")
                     : "Dispute under review"}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--runit-muted)", marginTop: 2 }}>
                   {fillResolved
-                    ? (fillResolution && fillResolution.toLowerCase().includes("favour")
-                      ? "The runner was found at fault and has been suspended."
-                      : "Admin reviewed your dispute and found no fault with the runner.")
+                    ? (fillResolution.toLowerCase().includes("fault")
+                        ? "The runner was found at fault and has been suspended."
+                        : "Admin reviewed your dispute and found no fault with the runner.")
                     : "Admin is reviewing your dispute. We will notify you within 24 hours."}
                 </div>
               </div>
@@ -373,15 +372,13 @@ export default function OrderDetail() {
           <div style={{ background: "var(--runit-surface)", border: "1px solid var(--runit-border)", borderRadius: 20, padding: 20 }}>
             <div style={{ fontSize: 13, color: "var(--runit-muted)", marginBottom: 12, fontWeight: 600 }}>Order Details</div>
             <div style={{ fontSize: 14, lineHeight: 1.7, marginBottom: 14 }}>{safe(order.description)}</div>
-
             {order.notes && (
               <div style={{ fontSize: 13, color: "var(--runit-muted)", fontStyle: "italic", marginBottom: 14, padding: "10px 14px", background: "var(--runit-elevated)", borderRadius: 10 }}>
                 {"📝 " + safe(order.notes)}
               </div>
             )}
-
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {detailRows.map(function (item) {
+              {detailRows.map(function(item) {
                 return (
                   <div key={item.label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, borderBottom: "1px solid var(--runit-border)", paddingBottom: 8 }}>
                     <span style={{ color: "var(--runit-muted)" }}>{item.label}</span>
@@ -416,6 +413,11 @@ export default function OrderDetail() {
             </div>
           )}
 
+          {/* ── Runner tracker ── */}
+          {order.runner_name && TRACKING_STATUSES.includes(order.status) && (
+            <RunnerTracker order={order} compact={false} />
+          )}
+
           {/* ── Payment reminder ── */}
           <div style={{ background: "rgba(0,201,167,0.05)", border: "1px solid var(--runit-border)", borderRadius: 20, padding: 18, display: "flex", gap: 12, alignItems: "flex-start" }}>
             <span style={{ fontSize: 22 }}>💵</span>
@@ -427,7 +429,7 @@ export default function OrderDetail() {
             </div>
           </div>
 
-          {/* ── Rating form (after delivery) ── */}
+          {/* ── Rating form ── */}
           {order.status === "delivered" && (
             <RatingForm orderId={parseInt(id)} />
           )}
@@ -445,8 +447,16 @@ export default function OrderDetail() {
             </button>
           )}
 
+          {/* ── Receipt button ── */}
+          {order.status === "delivered" && (
+            <button onClick={function() { navigate("/orders/" + id + "/receipt"); }}
+              style={{ width: "100%", padding: "13px", borderRadius: 50, background: "rgba(0,201,167,0.1)", border: "1px solid rgba(0,201,167,0.3)", color: "var(--runit-accent)", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", marginBottom: 8 }}>
+              🧾 View Receipt
+            </button>
+          )}
+
           {/* ── Back button ── */}
-          <button onClick={function () { navigate("/orders"); }}
+          <button onClick={function() { navigate("/orders"); }}
             style={{ width: "100%", padding: "12px", borderRadius: 50, background: "transparent", border: "1px solid var(--runit-border)", color: "var(--runit-muted)", fontWeight: 500, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
             Back to Orders
           </button>

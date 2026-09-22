@@ -38,7 +38,7 @@ export default function AdminStories() {
     setLoading(true);
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/stories.php", { headers: { Authorization: "Bearer " + token } });
+      var res   = await fetch(BASE + '/api/admin/stories.php', { headers: { Authorization: "Bearer " + token } });
       var data  = await res.json();
       if (res.ok) setStories(data.stories || []);
     } catch {}
@@ -80,7 +80,7 @@ export default function AdminStories() {
       if (file) fd.append(slideType === "video" ? "video" : "image", file);
       if (thumbFile) fd.append("thumbnail", thumbFile);
 
-      var res  = await fetch(BASE + "/api/admin/stories.php", {
+      var res  = await fetch(BASE + '/api/admin/stories.php', {
         method: "POST",
         headers: { Authorization: "Bearer " + token },
         body: fd,
@@ -101,7 +101,7 @@ export default function AdminStories() {
     if (!window.confirm("Delete this slide?")) return;
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/stories.php", {
+      var res   = await fetch(BASE + '/api/admin/stories.php', {
         method: "DELETE",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ id: id }),
@@ -116,7 +116,7 @@ export default function AdminStories() {
     if (!window.confirm("Delete all slides in this story group?")) return;
     try {
       var token = localStorage.getItem("runit_token");
-      var res   = await fetch(BASE + "/api/admin/stories.php", {
+      var res   = await fetch(BASE + '/api/admin/stories.php', {
         method: "DELETE",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
         body: JSON.stringify({ group_id: gid }),

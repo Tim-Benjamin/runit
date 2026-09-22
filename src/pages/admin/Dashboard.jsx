@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res = await fetch('(import.meta.env.VITE_API_BASE) + "/api/admin/stats.php', {
+      const res = await fetch(import.meta.env.VITE_API_BASE + '/api/admin/stats.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -39,7 +39,7 @@ export default function AdminDashboard() {
   const updateRunner = async (id, status) => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res = await fetch('(import.meta.env.VITE_API_BASE) + "/api/admin/runners.php', {
+      const res = await fetch(import.meta.env.VITE_API_BASE + '/api/admin/runners.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ runner_id: id, status }),
@@ -161,6 +161,7 @@ export default function AdminDashboard() {
                 { label: '📣 Announce', path: '/admin/announcements' },
                 { label: '📸 Stories', path: '/admin/stories' },
                 { label: '📢 Launch Ad', path: '/admin/ads' },
+                { label: '🎁 Promos', path: '/admin/promos' },
               ].map(item => (
                 <button key={item.path} onClick={() => navigate(item.path)} style={{ padding: '8px 16px', borderRadius: 50, whiteSpace: 'nowrap', background: 'var(--runit-surface)', border: '1px solid var(--runit-border)', color: 'var(--runit-text)', fontSize: 13, cursor: 'pointer', transition: 'border-color 0.2s', flexShrink: 0 }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--runit-accent)'}

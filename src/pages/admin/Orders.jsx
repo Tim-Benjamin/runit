@@ -16,7 +16,7 @@ export default function AdminOrders() {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem('runit_token');
-      const res   = await fetch('(import.meta.env.VITE_API_BASE) + "/api/orders/list.php', {
+      const res   = await fetch(import.meta.env.VITE_API_BASE + '/api/orders/list.php', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
